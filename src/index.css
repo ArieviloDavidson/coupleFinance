@@ -1,6 +1,10 @@
 /* DEFINIÇÕES PARA A PÁGINA INTEIRA */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  /* Cores de Títulos */
+  --color-title: #2c3e50;
+  --color-subtitle: #7f8c8d;
 }
 
 body {
