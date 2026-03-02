@@ -21,8 +21,8 @@ export const CATEGORIES = {
         'Saúde',               // Farmácia, Médicos
         'Eletrônicos',         // Gadgets, Celulares (Veio do CardShoppingForm)
         'Pagamento de Cartão', // Para categorizar pagamentos de fatura
+        'Assinaturas',         // Serviços de AudioVisual
         'Outros',
-        'Assinaturas'
     ]
 };
 
@@ -35,6 +35,4 @@ export const COLLECTIONS = {
     FIXED_EXPENSES: 'livingExpenses',
     FIXED_ENTRIES: 'fixedEntries',
     ALLOWED_USERS: 'allowed_users',
-    // Não temos certeza sobre 'users' ainda, mas vamos deixar preparado se aparecer
-    // USERS: 'users' 
 };
