@@ -1,53 +1,58 @@
+/* Herda container da shared.css */
 .dashboard-container {
-  height: 100%;
-  width: 100%;
-  margin: 0;
   display: flex;
-  flex-direction: column; /* Garante que o grid ocupe o resto da altura */
+  flex-direction: column;
 }
-
-/* Header Flex para alinhar Texto à Esquerda e Saldo à Direita */
+/* Títulos, Entradas e Saldo */
+/* Herda header da shared.css */
 .dashboard-header {
-  /* margin-bottom: 30px; */
-  padding-bottom: 20px;
   display: flex;
-  justify-content: space-between; /* Separa os elementos nas pontas */
-  align-items: center; /* Centraliza verticalmente */
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
 }
-
-.header-text h1 {
-  margin: 0;
-  color: #2c3e50;
-}
-
-.header-text p {
-  color: #7f8c8d;
-  margin-top: 5px;
-  margin-bottom: 0;
-}
-
-/* Container dos Cards à direita */
-.header-cards {
-    display: flex;
-    gap: 15px; /* Espaço entre os cartões */
-    flex-wrap: wrap;
-}
-
-/* Estilo Base do Card (Comum aos dois) */
-.dashboard-card {
-  padding: 20px;
-  border-radius: 12px;
-  min-width: 200px;
+/* Títulos e Entradas Fixas */
+.header-left {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
+  width: 70%;
+}
+/* Botão de Entradas Fixas */
+.btn-view-entries {
+  background-color: var(--color-entries);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.3s;
+}
+.btn-view-entries:hover {
+  background-color: var(--color-entries-hover);
+}
+/* Container dos Cards de Saldo e Previsão */
+.header-cards {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: 30%;
+    gap: 15px;
+}
+/* Estilo Base do Card (Comum aos dois) */
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 20px;
+  border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
 .dashboard-card span {
   font-size: 0.9rem;
-  margin-bottom: 5px;
   opacity: 0.9;
 }
 
@@ -66,23 +71,6 @@
   background-color: #ecf0f1; /* Cinza claro */
   border: 1px solid #bdc3c7;
   color: #7f8c8d;
-}
-
-.btn-view-entries {
-  margin-top: 10px;
-  background-color: #27ae60; /* Verde para remeter a entradas */
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-.btn-view-entries:hover {
-  background-color: #219150;
 }
 
 /* Graphs Layout */

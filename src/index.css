@@ -5,6 +5,11 @@
   /* Cores de Títulos */
   --color-title: #2c3e50;
   --color-subtitle: #7f8c8d;
+
+  /* Cores de Entradas e Saídas */
+  --color-entries: #27ae60;
+  --color-entries-hover: #219150;
+  --color-expenses: #c0392b;
 }
 
 body {

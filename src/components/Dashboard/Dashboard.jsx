@@ -1,20 +1,24 @@
+// BASIC
 import React, { useState, useEffect } from 'react';
+// FIREBASE
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
+// COMPONENTS
 import FixedExpenses from '../FixedExpenses/FixedExpenses';
 import ChartExpensesCategory from '../Charts/ChartExpensesCategory';
 import ChartCreditLimit from '../Charts/ChartCreditLimit';
 import FixedEntries from '../FixedEntries/FixedEntries';
+// CSS
 import './Dashboard.css';
+import '../../shared.css';
 
 const Dashboard = () => {
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [isEntriesModalOpen, setIsEntriesModalOpen] = useState(false);
-
-  // Novos estados para a Previsão
-  const [totalFixedEntries, setTotalFixedEntries] = useState(0);
-  const [totalFixedExpenses, setTotalFixedExpenses] = useState(0);
+  // Estados
+  const [totalBalance, setTotalBalance] = useState(0); // Saldo total das carteiras
+  const [isEntriesModalOpen, setIsEntriesModalOpen] = useState(false); // Modal de entradas fixas
+  const [totalFixedEntries, setTotalFixedEntries] = useState(0); // Total de entradas fixas
+  const [totalFixedExpenses, setTotalFixedExpenses] = useState(0); // Total de despesas fixas
 
   // 1. Busca Saldo Total (Wallets)
   useEffect(() => {
@@ -47,33 +51,31 @@ const Dashboard = () => {
   const predictionValue = totalFixedEntries - totalFixedExpenses;
 
   return (
-    <div className="dashboard-container">
+    <div className='dashboard-container container'>
 
-      <div className="dashboard-header">
-        <div className="header-text">
-          <h1>Visão Geral</h1>
-          <p>Bem-vindos ao Couple Finance</p>
+      <div className="dashboard-header header-container">
+        <div className="header-left">
+          <h1 className='page-title'>Visão Geral</h1>
+          <p className='page-subtitle'>Bem-vindos ao Couple Finance</p>
 
           <button
-            className="btn-view-entries"
+            className="btn-view-entries btn"
             onClick={() => setIsEntriesModalOpen(true)}
           >
             Ver Entradas Fixas
           </button>
         </div>
 
-        {/* Container para os Cards ficarem lado a lado */}
         <div className="header-cards">
 
-          {/* NOVO CARD: Previsão */}
           <div className="dashboard-card prediction-card">
             <span>Previsão (Fixos)</span>
-            <strong style={{ color: predictionValue >= 0 ? '#2c3e50' : '#c0392b' }}>
+            {/* Condicional: Se for negativo, fica vermelho, senão, fica azul */}
+            <strong style={{ color: predictionValue >= 0 ? '#2e4761ff' : '#c0392b' }}>
               {predictionValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </strong>
           </div>
 
-          {/* Card Existente: Saldo */}
           <div className="dashboard-card balance-card">
             <span>Saldo Disponível</span>
             <strong>
