@@ -9,7 +9,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { db } from '../../firebase';
-import TransactionForm from '../TransactionForm/TransactionForm';
+import TransactionForm from '../../components/TransactionForm/TransactionForm';
 import './Transactions.css';
 
 import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';

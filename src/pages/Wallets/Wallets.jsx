@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, addDoc, deleteDoc, doc, writeBatch, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
-import WalletsForm from '../WalletsForm/WalletsForm';
-import TransferModal from '../TransferModal/TransferModal'; // <--- Importe o novo modal
+import WalletsForm from '../../components/WalletsForm/WalletsForm';
+import TransferModal from '../../components/TransferModal/TransferModal';
 import './Wallets.css';
 
 const Wallets = () => {
