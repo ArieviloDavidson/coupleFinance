@@ -3,7 +3,7 @@ import { collection, getDocs, writeBatch, doc, increment } from 'firebase/firest
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
-import './FixedEntries.css';
+import './FixedEntryReceiveModal.css';
 
 const FixedEntryReceiveModal = ({ isOpen, onClose, entryItem }) => {
   const [selectedWalletId, setSelectedWalletId] = useState('');

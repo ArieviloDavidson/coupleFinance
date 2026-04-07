@@ -35,4 +35,6 @@ export const COLLECTIONS = {
     FIXED_EXPENSES: 'livingExpenses',
     FIXED_ENTRIES: 'fixedEntries',
     ALLOWED_USERS: 'allowed_users',
+    INVESTMENT_TYPES: 'investmentTypes',
+    INVESTMENTS: 'investments',
 };

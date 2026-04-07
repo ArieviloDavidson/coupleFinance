@@ -4,7 +4,7 @@ import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedExpenses.css';
-import FixedExpensePayModal from './FixedExpensesPayModal'; // Importe o Modal
+import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal'; // Importe o Modal
 
 const FixedExpenses = () => {
   const [expenses, setExpenses] = useState([]);

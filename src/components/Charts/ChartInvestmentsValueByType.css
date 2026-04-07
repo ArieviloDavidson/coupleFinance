@@ -1,0 +1,5 @@
+/* Herda .chart-container, .chart-header, .chart-title, .chart-content, .chart-empty de ChartExpensesCategory.css */
+
+.chart-investments-value {
+  min-height: 350px;
+}

@@ -4,7 +4,7 @@ import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedEntries.css';
-import FixedEntryReceiveModal from './FixedEntryReceiveModal';
+import FixedEntryReceiveModal from '../FixedEntryReceiveModal/FixedEntryReceiveModal';
 
 const FixedEntries = ({ isOpen, onClose }) => {
   const [entries, setEntries] = useState([]);

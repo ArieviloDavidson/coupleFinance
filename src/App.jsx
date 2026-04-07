@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import Transactions from './components/Transactions/Transactions';
 import Wallets from './components/Wallets/Wallets';
 import Budgets from './components/Budgets/Budgets';
+import Investments from './components/Investments/Investments';
 
 // Auth Imports
 import Login from './components/Login/Login'; // Importe o componente que criamos antes
@@ -108,7 +109,14 @@ function App() {
             Metas / Orçamento
           </button>
 
-          {/* BOTÃO SAIR (NOVO) */}
+          <button 
+            className={activeView === 'investments' ? 'active' : ''} 
+            onClick={() => setActiveView('investments')}
+          >
+            Investimentos
+          </button>
+
+          {/* BOTÃO SAIR */}
           <button 
             onClick={handleLogout}
             style={{ marginTop: '20px', backgroundColor: 'rgba(231, 76, 60, 0.2)', color: '#e74c3c', border: '1px solid #e74c3c' }}
@@ -126,6 +134,7 @@ function App() {
         {activeView === 'cards' && <ListCards />}
         {activeView === 'wallets' && <Wallets />}
         {activeView === 'budgets' && <Budgets />}
+        {activeView === 'investments' && <Investments />}
       </main>
     </div>
   )
