@@ -27,15 +27,19 @@ import '../../shared.css';
 
 // ======================================================
 // HELPER: Cor dinâmica baseada na proximidade do ideal
-// ratio = atual / ideal → HSL hue 0(vermelho) to 120(verde)
+// ratio = atual / ideal → distância de 1 define a cor
+// distance 0 (perfeito) → verde | distance ≥ 1 → vermelho
+// Simétrico: excesso e falta são igualmente penalizados
 // ======================================================
 function getInvestmentColor(atual, ideal) {
   if (ideal === 0) return '#95a5a6';
   const ratio = atual / ideal;
-  // Clamp ratio between 0 and 1.3 for color mapping
-  const clampedRatio = Math.min(Math.max(ratio, 0), 1.3);
-  // Map 0→1 to hue 0→120 (red→green), above 1 stays green
-  const hue = Math.min(clampedRatio, 1) * 120;
+  // Distância absoluta do ideal (ratio = 1 é perfeito)
+  const distance = Math.abs(ratio - 1);
+  // Clamp: distância 0 → verde, distância ≥ 1 → vermelho
+  const clampedDistance = Math.min(distance, 1);
+  // Map 1→0 a hue 120→0 (verde→vermelho)
+  const hue = (1 - clampedDistance) * 120;
   return `hsl(${hue}, 70%, 45%)`;
 }
 
