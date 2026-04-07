@@ -54,6 +54,7 @@ const Investments = () => {
   const [isEditIdealOpen, setIsEditIdealOpen] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [newIdealValue, setNewIdealValue] = useState('');
+  const [newColorValue, setNewColorValue] = useState('#4caf50');
 
   // Filtro de data para lista de movimentações
   const [filterDate, setFilterDate] = useState(() => {
@@ -263,6 +264,7 @@ const Investments = () => {
   const openEditIdeal = (type) => {
     setEditingType(type);
     setNewIdealValue(type.idealPercentage || '');
+    setNewColorValue(type.color || '#4caf50');
     setIsEditIdealOpen(true);
   };
 
@@ -270,11 +272,12 @@ const Investments = () => {
     if (!editingType) return;
     try {
       await updateDoc(doc(db, COLLECTIONS.INVESTMENT_TYPES, editingType.id), {
-        idealPercentage: Number(newIdealValue)
+        idealPercentage: Number(newIdealValue),
+        color: newColorValue
       });
       setIsEditIdealOpen(false);
     } catch (error) {
-      console.error("Erro ao atualizar % ideal:", error);
+      console.error("Erro ao atualizar tipo:", error);
     }
   };
 
@@ -442,16 +445,19 @@ const Investments = () => {
         onSave={handleAddType}
       />
 
-      {/* Modal Editar % Ideal */}
+      {/* Modal Editar Tipo */}
       {isEditIdealOpen && editingType && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '300px' }}>
-            <h3>% Ideal: {editingType.name}</h3>
+          <div className="modal-content" style={{ maxWidth: '320px' }}>
+            <h3>Editar: {editingType.name}</h3>
             <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              Defina a porcentagem ideal para este tipo de investimento
+              Ajuste a porcentagem ideal e a cor deste tipo de investimento
             </p>
 
             <div className="form-group">
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.85rem', color: '#444' }}>
+                % Ideal
+              </label>
               <input
                 type="number"
                 value={newIdealValue}
@@ -459,8 +465,23 @@ const Investments = () => {
                 placeholder="25"
                 min="0"
                 max="100"
-                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '1rem', boxSizing: 'border-box' }}
               />
+            </div>
+
+            <div className="form-group" style={{ marginTop: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '0.85rem', color: '#444' }}>
+                Cor do tipo
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="color"
+                  value={newColorValue}
+                  onChange={(e) => setNewColorValue(e.target.value)}
+                  style={{ width: '48px', height: '40px', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer', padding: '2px' }}
+                />
+                <span style={{ fontSize: '0.9rem', color: '#555', fontFamily: 'monospace' }}>{newColorValue}</span>
+              </div>
             </div>
 
             <div className="modal-actions">
