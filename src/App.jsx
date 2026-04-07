@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Componentes do App
-import ListCards from './components/ListCards/ListCards';
-import Dashboard from './components/Dashboard/Dashboard';
-import Transactions from './components/Transactions/Transactions';
-import Wallets from './components/Wallets/Wallets';
-import Budgets from './components/Budgets/Budgets';
-import Investments from './components/Investments/Investments';
+// Pages
+import ListCards from './pages/ListCards/ListCards';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Transactions from './pages/Transactions/Transactions';
+import Wallets from './pages/Wallets/Wallets';
+import Budgets from './pages/Budgets/Budgets';
+import Investments from './pages/Investments/Investments';
 
-// Auth Imports
-import Login from './components/Login/Login'; // Importe o componente que criamos antes
+// Auth
+import Login from './pages/Login/Login';
 import { auth } from './firebase'; 
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
 

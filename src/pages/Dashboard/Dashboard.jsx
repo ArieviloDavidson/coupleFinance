@@ -5,10 +5,10 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 // COMPONENTS
-import FixedExpenses from '../FixedExpenses/FixedExpenses';
-import ChartExpensesCategory from '../Charts/ChartExpensesCategory';
-import ChartCreditLimit from '../Charts/ChartCreditLimit';
-import FixedEntries from '../FixedEntries/FixedEntries';
+import FixedExpenses from '../../components/FixedExpenses/FixedExpenses';
+import ChartExpensesCategory from '../../components/Charts/ChartExpensesCategory';
+import ChartCreditLimit from '../../components/Charts/ChartCreditLimit';
+import FixedEntries from '../../components/FixedEntries/FixedEntries';
 // CSS
 import './Dashboard.css';
 import '../../shared.css';

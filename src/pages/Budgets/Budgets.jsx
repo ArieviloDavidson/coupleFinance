@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import CurrencyInput from '../CurrencyInput/CurrencyInput';
+import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import './Budgets.css';
 
 import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';

@@ -3,9 +3,9 @@ import { collection, onSnapshot, addDoc, deleteDoc, doc, writeBatch, increment }
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 import './ListCards.css';
-import CardForm from '../CardForm/CardForm';
-import CardShoppingForm from '../CardShoppingForm/CardShoppingForm';
-import PayOffModal from '../PayOffModal/PayOffModal';
+import CardForm from '../../components/CardForm/CardForm';
+import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
+import PayOffModal from '../../components/PayOffModal/PayOffModal';
 
 const ListCards = () => {
 

@@ -13,13 +13,13 @@ import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 
 // Sub-componentes
-import InvestmentForm from '../InvestmentForm/InvestmentForm';
-import InvestmentTypeForm from '../InvestmentTypeForm/InvestmentTypeForm';
+import InvestmentForm from '../../components/InvestmentForm/InvestmentForm';
+import InvestmentTypeForm from '../../components/InvestmentTypeForm/InvestmentTypeForm';
 
 // Gráficos
-import ChartInvestmentsByType from '../Charts/ChartInvestmentsByType';
-import ChartInvestmentsByMonth from '../Charts/ChartInvestmentsByMonth';
-import ChartInvestmentsValueByType from '../Charts/ChartInvestmentsValueByType';
+import ChartInvestmentsByType from '../../components/Charts/ChartInvestmentsByType';
+import ChartInvestmentsByMonth from '../../components/Charts/ChartInvestmentsByMonth';
+import ChartInvestmentsValueByType from '../../components/Charts/ChartInvestmentsValueByType';
 
 // Estilos
 import './Investments.css';
@@ -155,43 +155,39 @@ const Investments = () => {
         createdAt: new Date()
       });
 
-      // B) Atualiza saldo da carteira
+      // B) Atualiza saldo da carteira (apenas se carteira selecionada)
       if (data.walletId) {
         const walletRef = doc(db, COLLECTIONS.WALLETS, data.walletId);
 
         if (data.type === 'entrada') {
-          // Aporte: dinheiro SAI da carteira → decrementa
           batch.update(walletRef, { currentBalance: increment(-data.value) });
         } else {
-          // Resgate: dinheiro VOLTA para a carteira → incrementa
           batch.update(walletRef, { currentBalance: increment(data.value) });
         }
-      }
 
-      // C) Cria transação correspondente na collection principal
-      const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-      if (data.type === 'entrada') {
-        // Aporte = saída de dinheiro
-        batch.set(transRef, {
-          description: data.description,
-          value: data.value,
-          type: 'saida',
-          category: 'Investimentos',
-          date: data.date,
-          walletId: data.walletId,
-          walletName: data.walletName
-        });
-      } else {
-        // Resgate = entrada de dinheiro
-        batch.set(transRef, {
-          description: data.description,
-          value: data.value,
-          type: 'entrada',
-          category: 'Investimentos (Resgate)',
-          date: data.date,
-          walletId: data.walletId,
-          walletName: data.walletName
-        });
+        // C) Cria transação correspondente na collection principal (só com carteira)
+        const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
+        if (data.type === 'entrada') {
+          batch.set(transRef, {
+            description: data.description,
+            value: data.value,
+            type: 'saida',
+            category: 'Investimentos',
+            date: data.date,
+            walletId: data.walletId,
+            walletName: data.walletName
+          });
+        } else {
+          batch.set(transRef, {
+            description: data.description,
+            value: data.value,
+            type: 'entrada',
+            category: 'Investimentos (Resgate)',
+            date: data.date,
+            walletId: data.walletId,
+            walletName: data.walletName
+          });
+        }
       }
 
       await batch.commit();
@@ -232,7 +228,10 @@ const Investments = () => {
 
   // --- 7. CRUD: Excluir Movimentação (com estorno) ---
   const handleDeleteInvestment = async (investment) => {
-    const confirmMsg = `Excluir "${investment.description}"? O valor (R$ ${investment.value}) será estornado na carteira.`;
+    const walletMsg = investment.walletId
+      ? ` O valor (R$ ${investment.value}) será estornado na carteira.`
+      : '';
+    const confirmMsg = `Excluir "${investment.description}"?${walletMsg}`;
     if (!window.confirm(confirmMsg)) return;
 
     try {
