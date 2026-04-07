@@ -3,7 +3,7 @@ import { collection, getDocs, writeBatch, doc, increment, addDoc } from 'firebas
 import { db } from '../../firebase';
 import { COLLECTIONS } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
-import './FixedExpenses.css'; // Reaproveita o CSS
+import './FixedExpensesPayModal.css';
 
 const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
   const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' ou 'card'
