@@ -23,9 +23,6 @@
 .btn-view-entries {
   background-color: var(--color-entries);
   color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
   transition: background 0.3s;
 }
 .btn-view-entries:hover {
@@ -74,11 +71,9 @@
 }
 
 /* Graphs Layout */
+/* Herda page-container da shared.css */
 .dashboard-grid {
   display: flex;
   flex-direction: row;
-  height: 75%;
-  width: 100%;
-  padding: 0px;
   gap: 20px;
 }

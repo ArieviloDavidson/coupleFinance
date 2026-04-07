@@ -85,7 +85,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="dashboard-grid">
+      <div className="dashboard-grid page-container">
         <FixedExpenses />
         <ChartExpensesCategory />
         <ChartCreditLimit />
