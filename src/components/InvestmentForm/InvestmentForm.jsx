@@ -40,13 +40,13 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
     e.preventDefault();
 
     const selectedType = investmentTypes.find(t => t.id === formData.investmentTypeId);
-    const selectedWallet = wallets.find(w => w.id === formData.walletId);
 
-    if (!selectedType || !selectedWallet) {
-      alert('Selecione o tipo de investimento e a carteira.');
+    if (!selectedType) {
+      alert('Selecione o tipo de investimento.');
       return;
     }
 
+    const selectedWallet = wallets.find(w => w.id === formData.walletId);
     const dateFixed = parseDateToNoon(formData.date);
 
     onSave({
@@ -54,7 +54,7 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
       value: Number(formData.value),
       date: dateFixed,
       investmentTypeName: selectedType.name,
-      walletName: selectedWallet.name
+      walletName: selectedWallet ? selectedWallet.name : null
     });
 
     onClose();
@@ -132,15 +132,16 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
             </div>
           </div>
 
-          {/* Carteira */}
+          {/* Carteira (opcional) */}
           <div className="form-group">
             <label>
               {formData.type === 'entrada'
                 ? 'Carteira (Débito - sai daqui)'
                 : 'Carteira (Crédito - entra aqui)'}
+              <span style={{ color: '#95a5a6', fontWeight: 400, marginLeft: 6, fontSize: '0.8rem' }}>— opcional</span>
             </label>
-            <select name="walletId" value={formData.walletId} onChange={handleChange} required>
-              <option value="" disabled>Selecione uma carteira</option>
+            <select name="walletId" value={formData.walletId} onChange={handleChange}>
+              <option value="">Sem carteira (apenas histórico)</option>
               {wallets.map(wallet => (
                 <option key={wallet.id} value={wallet.id}>
                   {wallet.name} (Saldo: R$ {Number(wallet.currentBalance).toFixed(2)})
