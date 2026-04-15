@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { fetchWallets } from '../../api/wallets';
 import { parseDateToNoon } from '../../utils/dateUtils';
-import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';
+import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './TransactionForm.css';
 
@@ -20,14 +19,13 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
 
   // Busca carteiras
   useEffect(() => {
-    const fetchWallets = async () => {
+    const loadWallets = async () => {
       if (isOpen) {
-        const querySnapshot = await getDocs(collection(db, COLLECTIONS.WALLETS));
-        const walletsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const walletsData = await fetchWallets();
         setWallets(walletsData);
       }
     };
-    fetchWallets();
+    loadWallets();
   }, [isOpen]);
 
   // Se o usuário mudar o TIPO (entrada/saida), resetamos a categoria

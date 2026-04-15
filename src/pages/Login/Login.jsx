@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithPopup, signOut } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore"; // Importações do Firestore
-import { auth, googleProvider, db } from '../../firebase'; // Importe o 'db' aqui
-import { COLLECTIONS } from '../../utils/constants';
+import { auth, googleProvider } from '../../firebase';
+import { checkAllowedUser } from '../../api/auth';
 import './Login.css';
 
 const Login = () => {
@@ -15,20 +14,15 @@ const Login = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // 2. Referência à coleção de usuários permitidos
-      const usersRef = collection(db, COLLECTIONS.ALLOWED_USERS);
+      // 2. Verifica se o email está na lista de permitidos
+      const isAllowed = await checkAllowedUser(user.email);
 
-      // 3. Query: Procure onde o campo 'email' é igual ao email do usuário logado
-      const q = query(usersRef, where("email", "==", user.email));
-      const querySnapshot = await getDocs(q);
-
-      // 4. Verificação
-      if (querySnapshot.empty) {
-        // Se a query retornou vazio, o email não está na lista
+      // 3. Verificação
+      if (!isAllowed) {
+        // O email não está na lista
         await signOut(auth);
         alert("Acesso Negado: Este email não tem permissão para acessar o sistema.");
       } else {
-        // Opcional: Você pode pegar dados extras do banco aqui se quiser
         // O App.jsx vai detectar o login automaticamente via onAuthStateChanged
         console.log("Login autorizado para:", user.email);
       }

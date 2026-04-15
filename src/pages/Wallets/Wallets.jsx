@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, writeBatch, increment } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { subscribeWallets, addWallet, removeWallet, transferBetweenWallets } from '../../api/wallets';
 import WalletsForm from '../../components/WalletsForm/WalletsForm';
 import TransferModal from '../../components/TransferModal/TransferModal';
 import './Wallets.css';
@@ -14,9 +12,7 @@ const Wallets = () => {
 
   // Busca dados em Tempo Real
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.WALLETS), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+    const unsubscribe = subscribeWallets((data) => {
       // --- TRECHO NOVO: ORDENAÇÃO ---
       // Ordena do maior saldo para o menor (Decrescente)
       data.sort((a, b) => {
@@ -35,10 +31,7 @@ const Wallets = () => {
   // Adicionar Carteira
   const handleAddWallet = async (newWallet) => {
     try {
-      await addDoc(collection(db, COLLECTIONS.WALLETS), {
-        ...newWallet,
-        createdAt: new Date()
-      });
+      await addWallet(newWallet);
     } catch (error) {
       console.error("Erro ao criar carteira:", error);
       alert("Erro ao salvar.");
@@ -49,54 +42,18 @@ const Wallets = () => {
   const handleDeleteWallet = async (id) => {
     if (window.confirm("Tem certeza? Isso não apaga o histórico de transações, mas remove a carteira.")) {
       try {
-        await deleteDoc(doc(db, COLLECTIONS.WALLETS, id));
+        await removeWallet(id);
       } catch (error) {
         console.error("Erro ao deletar:", error);
       }
     }
   };
 
-  // --- NOVA FUNÇÃO DE TRANSFERÊNCIA ---
+  // --- FUNÇÃO DE TRANSFERÊNCIA ---
   const handleTransfer = async (transferData) => {
     try {
-      const batch = writeBatch(db);
-
-      // 1. Referências das Carteiras
-      const sourceRef = doc(db, COLLECTIONS.WALLETS, transferData.sourceId);
-      const destRef = doc(db, COLLECTIONS.WALLETS, transferData.destId);
-
-      // 2. Atualiza Saldos (Decrementa Origem, Incrementa Destino)
-      batch.update(sourceRef, { currentBalance: increment(-transferData.value) });
-      batch.update(destRef, { currentBalance: increment(transferData.value) });
-
-      // 3. Cria Transação de SAÍDA na Origem
-      const transactionOutRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-      batch.set(transactionOutRef, {
-        description: `Transf. para ${transferData.destName}`,
-        value: transferData.value,
-        type: 'saida',
-        category: 'Transferência',
-        date: transferData.date,
-        walletId: transferData.sourceId,
-        walletName: transferData.sourceName
-      });
-
-      // 4. Cria Transação de ENTRADA no Destino
-      const transactionInRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-      batch.set(transactionInRef, {
-        description: `Transf. de ${transferData.sourceName}`,
-        value: transferData.value,
-        type: 'entrada',
-        category: 'Transferência',
-        date: transferData.date,
-        walletId: transferData.destId,
-        walletName: transferData.destName
-      });
-
-      // 5. Executa tudo de uma vez
-      await batch.commit();
+      await transferBetweenWallets(transferData);
       alert("Transferência realizada com sucesso!");
-
     } catch (error) {
       console.error("Erro na transferência:", error);
       alert("Erro ao realizar transferência.");

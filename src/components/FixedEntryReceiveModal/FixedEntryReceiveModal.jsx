@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, writeBatch, doc, increment } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { fetchWallets } from '../../api/wallets';
+import { receiveFixedEntry } from '../../api/fixedEntries';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedEntryReceiveModal.css';
 
@@ -15,15 +14,14 @@ const FixedEntryReceiveModal = ({ isOpen, onClose, entryItem }) => {
     if (isOpen && entryItem) {
       setCurrentValue(entryItem.value);
 
-      const fetchData = async () => {
-        const wSnap = await getDocs(collection(db, COLLECTIONS.WALLETS));
-        const walletList = wSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const loadData = async () => {
+        const walletList = await fetchWallets();
         setWallets(walletList);
 
         // Seleciona a primeira carteira por padrão
         if (walletList.length > 0) setSelectedWalletId(walletList[0].id);
       };
-      fetchData();
+      loadData();
     }
   }, [isOpen, entryItem]);
 
@@ -32,27 +30,9 @@ const FixedEntryReceiveModal = ({ isOpen, onClose, entryItem }) => {
   const handleConfirm = async () => {
     try {
       const val = Number(currentValue);
-      const batch = writeBatch(db);
-
-      // 1. Cria transação de Entrada
-      const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
       const walletName = wallets.find(w => w.id === selectedWalletId)?.name || 'Carteira';
 
-      batch.set(transRef, {
-        description: entryItem.description,
-        value: val,
-        type: 'entrada',
-        category: 'Receita Fixa', // Categoria automática
-        date: new Date(),
-        walletId: selectedWalletId,
-        walletName: walletName
-      });
-
-      // 2. Incrementa o saldo da Carteira
-      const walletRef = doc(db, COLLECTIONS.WALLETS, selectedWalletId);
-      batch.update(walletRef, { currentBalance: increment(val) });
-
-      await batch.commit();
+      await receiveFixedEntry(entryItem, selectedWalletId, walletName, val);
       alert(`Entrada "${entryItem.description}" recebida na carteira ${walletName}!`);
 
       onClose();

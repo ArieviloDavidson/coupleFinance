@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { subscribeFixedEntries, addFixedEntry, removeFixedEntry } from '../../api/fixedEntries';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedEntries.css';
 import FixedEntryReceiveModal from '../FixedEntryReceiveModal/FixedEntryReceiveModal';
@@ -18,8 +16,7 @@ const FixedEntries = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) return; // Só carrega se o modal estiver aberto
 
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.FIXED_ENTRIES), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const unsubscribe = subscribeFixedEntries((data) => {
       // Ordena alfabeticamente
       data.sort((a, b) => a.description.localeCompare(b.description));
       setEntries(data);
@@ -33,10 +30,7 @@ const FixedEntries = ({ isOpen, onClose }) => {
     if (!newItem.description || !newItem.value) return;
 
     try {
-      await addDoc(collection(db, COLLECTIONS.FIXED_ENTRIES), {
-        description: newItem.description,
-        value: Number(newItem.value)
-      });
+      await addFixedEntry(newItem);
       setNewItem({ description: '', value: '' });
     } catch (error) {
       console.error("Erro ao adicionar entrada:", error);
@@ -46,7 +40,7 @@ const FixedEntries = ({ isOpen, onClose }) => {
   const handleDelete = async (id) => {
     if (window.confirm("Remover esta entrada fixa?")) {
       try {
-        await deleteDoc(doc(db, COLLECTIONS.FIXED_ENTRIES, id));
+        await removeFixedEntry(id);
       } catch (error) {
         console.error("Erro ao deletar:", error);
       }

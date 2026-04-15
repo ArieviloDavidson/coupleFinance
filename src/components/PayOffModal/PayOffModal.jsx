@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { fetchWallets } from '../../api/wallets';
 import './PayOffModal.css';
 
 const PayOffModal = ({ isOpen, onClose, onConfirm, purchaseItem }) => {
@@ -9,15 +7,14 @@ const PayOffModal = ({ isOpen, onClose, onConfirm, purchaseItem }) => {
   const [selectedWalletId, setSelectedWalletId] = useState('');
 
   useEffect(() => {
-    const fetchWallets = async () => {
+    const loadWallets = async () => {
       if (isOpen) {
-        const snap = await getDocs(collection(db, COLLECTIONS.WALLETS));
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const data = await fetchWallets();
         setWallets(data);
         if (data.length > 0) setSelectedWalletId(data[0].id);
       }
     };
-    fetchWallets();
+    loadWallets();
   }, [isOpen]);
 
   if (!isOpen || !purchaseItem) return null;

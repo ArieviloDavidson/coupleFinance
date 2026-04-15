@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  collection,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  writeBatch,
-  increment,
-  updateDoc
-} from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+  subscribeInvestmentTypes,
+  subscribeInvestments,
+  addInvestmentType,
+  removeInvestmentType,
+  updateInvestmentType,
+  addInvestment,
+  deleteInvestment
+} from '../../api/investments';
 
 // Sub-componentes
 import InvestmentForm from '../../components/InvestmentForm/InvestmentForm';
@@ -67,8 +64,7 @@ const Investments = () => {
 
   // --- 1. Listener: Tipos de Investimento ---
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, COLLECTIONS.INVESTMENT_TYPES), (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const unsub = subscribeInvestmentTypes((data) => {
       setInvestmentTypes(data);
     });
     return () => unsub();
@@ -76,17 +72,7 @@ const Investments = () => {
 
   // --- 2. Listener: Movimentações ---
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, COLLECTIONS.INVESTMENTS), (snap) => {
-      const data = snap.docs.map(d => {
-        const docData = d.data();
-        return {
-          id: d.id,
-          ...docData,
-          dateObj: docData.date?.toDate ? docData.date.toDate() : new Date(docData.date)
-        };
-      });
-      // Ordena por data desc
-      data.sort((a, b) => b.dateObj - a.dateObj);
+    const unsub = subscribeInvestments((data) => {
       setInvestments(data);
       setLoading(false);
     });
@@ -151,51 +137,7 @@ const Investments = () => {
   // --- 4. CRUD: Adicionar Movimentação ---
   const handleAddInvestment = async (data) => {
     try {
-      const batch = writeBatch(db);
-
-      // A) Cria o registro de investimento
-      const invRef = doc(collection(db, COLLECTIONS.INVESTMENTS));
-      batch.set(invRef, {
-        ...data,
-        createdAt: new Date()
-      });
-
-      // B) Atualiza saldo da carteira (apenas se carteira selecionada)
-      if (data.walletId) {
-        const walletRef = doc(db, COLLECTIONS.WALLETS, data.walletId);
-
-        if (data.type === 'entrada') {
-          batch.update(walletRef, { currentBalance: increment(-data.value) });
-        } else {
-          batch.update(walletRef, { currentBalance: increment(data.value) });
-        }
-
-        // C) Cria transação correspondente na collection principal (só com carteira)
-        const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-        if (data.type === 'entrada') {
-          batch.set(transRef, {
-            description: data.description,
-            value: data.value,
-            type: 'saida',
-            category: 'Investimentos',
-            date: data.date,
-            walletId: data.walletId,
-            walletName: data.walletName
-          });
-        } else {
-          batch.set(transRef, {
-            description: data.description,
-            value: data.value,
-            type: 'entrada',
-            category: 'Investimentos (Resgate)',
-            date: data.date,
-            walletId: data.walletId,
-            walletName: data.walletName
-          });
-        }
-      }
-
-      await batch.commit();
+      await addInvestment(data);
     } catch (error) {
       console.error("Erro ao salvar investimento:", error);
       alert("Erro ao salvar investimento.");
@@ -205,10 +147,7 @@ const Investments = () => {
   // --- 5. CRUD: Adicionar Tipo ---
   const handleAddType = async (typeData) => {
     try {
-      await addDoc(collection(db, COLLECTIONS.INVESTMENT_TYPES), {
-        ...typeData,
-        createdAt: new Date()
-      });
+      await addInvestmentType(typeData);
     } catch (error) {
       console.error("Erro ao criar tipo:", error);
       alert("Erro ao criar tipo.");
@@ -224,7 +163,7 @@ const Investments = () => {
 
     if (window.confirm(msg)) {
       try {
-        await deleteDoc(doc(db, COLLECTIONS.INVESTMENT_TYPES, typeId));
+        await removeInvestmentType(typeId);
       } catch (error) {
         console.error("Erro ao excluir tipo:", error);
       }
@@ -240,24 +179,7 @@ const Investments = () => {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const batch = writeBatch(db);
-
-      // Deleta o investimento
-      batch.delete(doc(db, COLLECTIONS.INVESTMENTS, investment.id));
-
-      // Estorna na carteira (lógica inversa)
-      if (investment.walletId) {
-        const walletRef = doc(db, COLLECTIONS.WALLETS, investment.walletId);
-        if (investment.type === 'entrada') {
-          // Estorno de aporte: devolver dinheiro pra carteira
-          batch.update(walletRef, { currentBalance: increment(investment.value) });
-        } else {
-          // Estorno de resgate: tirar dinheiro da carteira
-          batch.update(walletRef, { currentBalance: increment(-investment.value) });
-        }
-      }
-
-      await batch.commit();
+      await deleteInvestment(investment);
     } catch (error) {
       console.error("Erro ao excluir investimento:", error);
       alert("Erro ao excluir.");
@@ -275,7 +197,7 @@ const Investments = () => {
   const handleSaveIdeal = async () => {
     if (!editingType) return;
     try {
-      await updateDoc(doc(db, COLLECTIONS.INVESTMENT_TYPES, editingType.id), {
+      await updateInvestmentType(editingType.id, {
         idealPercentage: Number(newIdealValue),
         color: newColorValue
       });

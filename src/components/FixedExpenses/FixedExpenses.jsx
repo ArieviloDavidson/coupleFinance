@@ -1,29 +1,32 @@
+// BASIC
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+// API
+import { subscribeFixedExpenses, addFixedExpense, removeFixedExpense } from '../../api/fixedExpenses';
+import { fetchExpenseTransactions } from '../../api/transactions';
+// COMPONENTS
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
+import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal';
+// CSS
 import './FixedExpenses.css';
-import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal'; // Importe o Modal
+import '../../shared.css';
 
 const FixedExpenses = () => {
+  // Estado das despesas fixas
   const [expenses, setExpenses] = useState([]);
+  // Estado do novo item
   const [newItem, setNewItem] = useState({ description: '', value: '' });
-
   // Estado para controlar o modal de pagamento
   const [payModalOpen, setPayModalOpen] = useState(false);
-
   // Estado para rastrear despesas já pagas no mês atual
   const [paidExpenses, setPaidExpenses] = useState(new Set());
+  // Estado para selecionar a despesa
   const [selectedExpense, setSelectedExpense] = useState(null);
 
+  // Busca as despesas fixas
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.FIXED_EXPENSES), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+    const unsubscribe = subscribeFixedExpenses((data) => {
       // Ordena o array antes de salvar no estado
       data.sort((a, b) => a.description.localeCompare(b.description));
-
       setExpenses(data);
     });
 
@@ -36,23 +39,15 @@ const FixedExpenses = () => {
       const now = new Date();
       const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
 
-      // Padrão do projeto: apenas UM where no Firestore, resto filtra no JS
-      const q = query(
-        collection(db, COLLECTIONS.TRANSACTIONS),
-        where('type', '==', 'saida')
-      );
-
-      const snapshot = await getDocs(q);
+      const transactions = await fetchExpenseTransactions();
       const paidNames = new Set();
 
-      snapshot.docs.forEach(doc => {
-        const t = doc.data();
+      transactions.forEach(t => {
         // Filtra por categoria 'Contas' no JS
         if (t.category !== 'Contas') return;
 
         // Filtra pelo mês atual no JS
-        const tDate = t.date?.toDate ? t.date.toDate() : new Date(t.date);
-        const tMonth = tDate.toISOString().slice(0, 7);
+        const tMonth = t.dateObj.toISOString().slice(0, 7);
 
         if (tMonth === currentMonth) {
           paidNames.add(t.description);
@@ -70,10 +65,7 @@ const FixedExpenses = () => {
     if (!newItem.description || !newItem.value) return;
 
     try {
-      await addDoc(collection(db, COLLECTIONS.FIXED_EXPENSES), {
-        description: newItem.description,
-        value: Number(newItem.value)
-      });
+      await addFixedExpense(newItem);
       setNewItem({ description: '', value: '' });
     } catch (error) {
       console.error("Erro ao adicionar:", error);
@@ -82,7 +74,7 @@ const FixedExpenses = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, COLLECTIONS.FIXED_EXPENSES, id));
+      await removeFixedExpense(id);
     } catch (error) {
       console.error("Erro ao deletar:", error);
     }

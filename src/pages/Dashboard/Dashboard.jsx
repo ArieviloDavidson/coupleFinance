@@ -1,9 +1,9 @@
 // BASIC
 import React, { useState, useEffect } from 'react';
-// FIREBASE
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+// API
+import { subscribeWallets } from '../../api/wallets';
+import { subscribeFixedExpenses } from '../../api/fixedExpenses';
+import { subscribeFixedEntries } from '../../api/fixedEntries';
 // COMPONENTS
 import FixedExpenses from '../../components/FixedExpenses/FixedExpenses';
 import ChartExpensesCategory from '../../components/Charts/ChartExpensesCategory';
@@ -22,8 +22,8 @@ const Dashboard = () => {
 
   // 1. Busca Saldo Total (Wallets)
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.WALLETS), (snapshot) => {
-      const total = snapshot.docs.reduce((acc, doc) => acc + Number(doc.data().currentBalance || 0), 0);
+    const unsubscribe = subscribeWallets((wallets) => {
+      const total = wallets.reduce((acc, w) => acc + Number(w.currentBalance || 0), 0);
       setTotalBalance(total);
     });
     return () => unsubscribe();
@@ -31,8 +31,8 @@ const Dashboard = () => {
 
   // 2. Busca Total de Entradas Fixas
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.FIXED_ENTRIES), (snapshot) => {
-      const total = snapshot.docs.reduce((acc, doc) => acc + Number(doc.data().value || 0), 0);
+    const unsubscribe = subscribeFixedEntries((entries) => {
+      const total = entries.reduce((acc, item) => acc + Number(item.value || 0), 0);
       setTotalFixedEntries(total);
     });
     return () => unsubscribe();
@@ -40,8 +40,8 @@ const Dashboard = () => {
 
   // 3. Busca Total de Despesas Fixas
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, COLLECTIONS.FIXED_EXPENSES), (snapshot) => {
-      const total = snapshot.docs.reduce((acc, doc) => acc + Number(doc.data().value || 0), 0);
+    const unsubscribe = subscribeFixedExpenses((expenses) => {
+      const total = expenses.reduce((acc, item) => acc + Number(item.value || 0), 0);
       setTotalFixedExpenses(total);
     });
     return () => unsubscribe();

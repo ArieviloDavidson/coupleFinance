@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  doc,
-  writeBatch,
-  increment
-} from 'firebase/firestore';
-import { db } from '../../firebase';
+  subscribeTransactions,
+  addTransactionWithWalletUpdate,
+  deleteTransactionWithRefund
+} from '../../api/transactions';
 import TransactionForm from '../../components/TransactionForm/TransactionForm';
 import './Transactions.css';
 
-import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';
+import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -31,18 +26,7 @@ const Transactions = () => {
 
   // 1. Busca Transações em Tempo Real
   useEffect(() => {
-    const q = query(collection(db, COLLECTIONS.TRANSACTIONS), orderBy('date', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => {
-        const docData = doc.data();
-        return {
-          id: doc.id,
-          ...docData,
-          // Converte Timestamp do Firestore para Date nativo do JS
-          dateObj: docData.date?.toDate ? docData.date.toDate() : new Date(docData.date)
-        };
-      });
+    const unsubscribe = subscribeTransactions((data) => {
       setTransactions(data);
       setLoading(false);
     });
@@ -53,27 +37,7 @@ const Transactions = () => {
   // 2. ADICIONAR: Cria a transação e Atualiza o Saldo da Carteira (Atômico)
   const handleAddTransaction = async (newTrans) => {
     try {
-      const batch = writeBatch(db); // Inicia o lote de gravação
-
-      // Passo A: Referência da nova transação
-      const newTransRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-      batch.set(newTransRef, newTrans);
-
-      // Passo B: Referência da carteira a ser atualizada
-      if (newTrans.walletId) {
-        const walletRef = doc(db, COLLECTIONS.WALLETS, newTrans.walletId);
-
-        // Lógica: Entrada SOMA (+), Saída SUBTRAI (-)
-        const amountToAdjust = newTrans.type === TRANSACTION_TYPES.ENTRADA ? newTrans.value : -newTrans.value;
-
-        batch.update(walletRef, {
-          currentBalance: increment(amountToAdjust)
-        });
-      }
-
-      // Passo C: Executa tudo de uma vez
-      await batch.commit();
-
+      await addTransactionWithWalletUpdate(newTrans);
     } catch (error) {
       console.error("Erro ao criar transação:", error);
       alert("Erro ao salvar. O saldo não foi alterado.");
@@ -88,28 +52,7 @@ const Transactions = () => {
 
     if (confirmDelete) {
       try {
-        const batch = writeBatch(db);
-
-        // Passo A: Referência da transação para deletar
-        const transRef = doc(db, COLLECTIONS.TRANSACTIONS, transaction.id);
-        batch.delete(transRef);
-
-        // Passo B: Verifica se tem carteira vinculada para estornar
-        if (transaction.walletId) {
-          const walletRef = doc(db, COLLECTIONS.WALLETS, transaction.walletId);
-
-          // Lógica INVERSA (Estorno):
-          // Se apaguei uma ENTRADA, tiro o dinheiro (-).
-          // Se apaguei uma SAÍDA, devolvo o dinheiro (+).
-          const amountToRevert = transaction.type === TRANSACTION_TYPES.ENTRADA ? -transaction.value : transaction.value;
-
-          batch.update(walletRef, {
-            currentBalance: increment(amountToRevert)
-          });
-        }
-
-        await batch.commit();
-
+        await deleteTransactionWithRefund(transaction);
       } catch (error) {
         console.error("Erro ao excluir:", error);
         alert("Erro ao excluir. O saldo não foi estornado.");

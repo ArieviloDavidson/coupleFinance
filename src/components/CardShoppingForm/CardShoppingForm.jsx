@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { fetchCards } from '../../api/cards';
 import './CardShoppingForm.css';
 
-import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';
+import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 import { parseDateToNoon } from '../../utils/dateUtils';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 
@@ -20,13 +19,13 @@ const CardShoppingForm = ({ isOpen, onClose, onSave }) => {
 
   // Busca os cartões para o Select
   useEffect(() => {
-    const fetchCards = async () => {
+    const loadCards = async () => {
       if (isOpen) {
-        const snap = await getDocs(collection(db, COLLECTIONS.CARDS));
-        setCards(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const data = await fetchCards();
+        setCards(data);
       }
     };
-    fetchCards();
+    loadCards();
   }, [isOpen]);
 
   if (!isOpen) return null;

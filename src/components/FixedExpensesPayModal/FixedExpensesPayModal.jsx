@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, writeBatch, doc, increment, addDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { fetchWallets } from '../../api/wallets';
+import { fetchCards } from '../../api/cards';
+import { payFixedExpenseWithWallet, payFixedExpenseWithCard } from '../../api/fixedExpenses';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedExpensesPayModal.css';
 
@@ -21,11 +21,11 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
       setCurrentValue(expenseItem.value); // Preenche com o valor padrão
 
       const fetchData = async () => {
-        const wSnap = await getDocs(collection(db, COLLECTIONS.WALLETS));
-        setWallets(wSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const walletsData = await fetchWallets();
+        setWallets(walletsData);
 
-        const cSnap = await getDocs(collection(db, COLLECTIONS.CARDS));
-        setCards(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const cardsData = await fetchCards();
+        setCards(cardsData);
       };
       fetchData();
     }
@@ -42,48 +42,15 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
   const handleConfirm = async () => {
     try {
       const val = Number(currentValue);
-      const today = new Date(); // Data do pagamento é HOJE
 
       if (paymentMethod === 'wallet') {
         // --- CENÁRIO 1: PAGAMENTO VIA CARTEIRA ---
-        const batch = writeBatch(db);
-
-        // A. Cria transação de Saída
-        const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
         const walletName = wallets.find(w => w.id === selectedSourceId)?.name || 'Carteira';
-
-        batch.set(transRef, {
-          description: expenseItem.description,
-          value: val,
-          type: 'saida',
-          category: 'Contas', // Categoria fixa para despesas fixas
-          date: today,
-          walletId: selectedSourceId,
-          walletName: walletName
-        });
-
-        // B. Desconta da Carteira
-        const walletRef = doc(db, COLLECTIONS.WALLETS, selectedSourceId);
-        batch.update(walletRef, { currentBalance: increment(-val) });
-
-        await batch.commit();
+        await payFixedExpenseWithWallet(expenseItem, selectedSourceId, walletName, val);
         alert(`Conta "${expenseItem.description}" paga via ${walletName}!`);
-
       } else {
         // --- CENÁRIO 2: PAGAMENTO VIA CARTÃO DE CRÉDITO ---
-        // Cria registro em cardsShopping (Assumindo 1x sem juros)
-        await addDoc(collection(db, COLLECTIONS.CARDS_SHOPPING), {
-          description: expenseItem.description,
-          totalValue: val,
-          installments: 1,
-          installmentValue: val,
-          date: today,
-          cardId: selectedSourceId,
-          category: 'Contas',
-          status: 'aberto',
-          installmentIndex: 1,
-          originalTotal: val
-        });
+        await payFixedExpenseWithCard(expenseItem, selectedSourceId, val);
         alert(`Conta "${expenseItem.description}" lançada no cartão!`);
       }
 

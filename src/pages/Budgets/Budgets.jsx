@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { fetchWallets } from '../../api/wallets';
+import { fetchCards, fetchCardsShopping } from '../../api/cards';
+import { fetchExpenseTransactions } from '../../api/transactions';
+import { fetchBudgetsByMonth, saveBudgetLimit } from '../../api/budgets';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import './Budgets.css';
 
-import { CATEGORIES, TRANSACTION_TYPES, COLLECTIONS } from '../../utils/constants';
+import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 
 const Budgets = () => {
   const [loading, setLoading] = useState(true);
@@ -27,11 +29,11 @@ const Budgets = () => {
   // 1. Carrega as Fontes
   useEffect(() => {
     const fetchSources = async () => {
-      const wSnap = await getDocs(collection(db, COLLECTIONS.WALLETS));
-      const cSnap = await getDocs(collection(db, COLLECTIONS.CARDS));
+      const walletsData = await fetchWallets();
+      const cardsData = await fetchCards();
       setSources({
-        wallets: wSnap.docs.map(d => ({ id: d.id, ...d.data() })),
-        cards: cSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        wallets: walletsData,
+        cards: cardsData
       });
     };
     fetchSources();
@@ -43,12 +45,7 @@ const Budgets = () => {
       setLoading(true);
 
       // A. Busca Limites
-      const limitsObj = {};
-      const budgetsSnap = await getDocs(query(collection(db, COLLECTIONS.BUDGETS), where("month", "==", currentMonth)));
-      budgetsSnap.forEach(doc => {
-        const data = doc.data();
-        limitsObj[data.category] = Number(data.limit);
-      });
+      const limitsObj = await fetchBudgetsByMonth(currentMonth);
       setBudgetLimits(limitsObj);
 
       // B. Busca Gastos Reais
@@ -58,15 +55,12 @@ const Budgets = () => {
       // --- B1. Transações (Wallets) ---
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
       if (selectedSource === 'all' || isWalletFilter) {
-        const qTrans = query(collection(db, COLLECTIONS.TRANSACTIONS), where("type", "==", TRANSACTION_TYPES.SAIDA));
-        const transSnap = await getDocs(qTrans);
+        const transactions = await fetchExpenseTransactions();
 
-        transSnap.docs.forEach(doc => {
-          const t = doc.data();
+        transactions.forEach(t => {
           if (t.category === 'Pagamento de Cartão') return;
 
-          const tDate = t.date?.toDate ? t.date.toDate() : new Date(t.date);
-          const tMonth = tDate.toISOString().slice(0, 7);
+          const tMonth = t.dateObj.toISOString().slice(0, 7);
 
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
@@ -80,15 +74,13 @@ const Budgets = () => {
       // --- B2. Compras (Cartões) - LÓGICA DE VENCIMENTO APLICADA ---
       const isCardFilter = sources.cards.some(c => c.id === selectedSource);
       if (selectedSource === 'all' || isCardFilter) {
-        const qCards = query(collection(db, COLLECTIONS.CARDS_SHOPPING));
-        const cardsSnap = await getDocs(qCards);
+        const shoppingData = await fetchCardsShopping();
 
-        cardsSnap.docs.forEach(doc => {
-          const c = doc.data();
+        shoppingData.forEach(c => {
           const cardConfig = sources.cards.find(card => card.id === c.cardId);
 
           // 1. Pega data original da compra/parcela
-          let targetDate = c.date?.toDate ? c.date.toDate() : new Date(c.date);
+          let targetDate = new Date(c.dateObj);
 
           // 2. Se temos a config do cartão, aplicamos a projeção de vencimento
           if (cardConfig) {
@@ -102,7 +94,6 @@ const Budgets = () => {
             }
 
             // Lógica B: O vencimento é no mês seguinte ao fechamento?
-            // Ex: Fecha dia 25, Vence dia 10. (10 < 25) -> Paga no mês seguinte
             if (dueDay < closingDay) {
               targetDate.setMonth(targetDate.getMonth() + 1);
             }
@@ -148,13 +139,8 @@ const Budgets = () => {
   const handleSaveLimit = async () => {
     if (!editingCategory) return;
 
-    const docId = `${currentMonth}_${editingCategory}`;
     try {
-      await setDoc(doc(db, COLLECTIONS.BUDGETS, docId), {
-        month: currentMonth,
-        category: editingCategory,
-        limit: Number(newLimit)
-      });
+      await saveBudgetLimit(currentMonth, editingCategory, newLimit);
 
       setBudgetLimits(prev => ({ ...prev, [editingCategory]: Number(newLimit) }));
       setSpendingData(prev => prev.map(item => {

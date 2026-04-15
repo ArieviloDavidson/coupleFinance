@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { fetchWallets } from '../../api/wallets';
 import { parseDateToNoon } from '../../utils/dateUtils';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './InvestmentForm.css';
@@ -20,13 +18,13 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
 
   // Busca carteiras ao abrir
   useEffect(() => {
-    const fetchWallets = async () => {
+    const loadWallets = async () => {
       if (isOpen) {
-        const snap = await getDocs(collection(db, COLLECTIONS.WALLETS));
-        setWallets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const data = await fetchWallets();
+        setWallets(data);
       }
     };
-    fetchWallets();
+    loadWallets();
   }, [isOpen]);
 
   if (!isOpen) return null;

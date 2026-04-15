@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, writeBatch, increment } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import {
+  subscribeCards,
+  subscribeCardsShopping,
+  addCard,
+  removeCard,
+  addCardPurchase,
+  removeCardPurchase,
+  payCardPurchase
+} from '../../api/cards';
 import './ListCards.css';
 import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
@@ -25,32 +31,13 @@ const ListCards = () => {
   // 1. Busca Cartões e Compras em paralelo (COM CORREÇÃO DE DATA)
   useEffect(() => {
     // Listener dos Cartões
-    const unsubscribeCards = onSnapshot(collection(db, COLLECTIONS.CARDS), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    const unsubscribeCards = subscribeCards((data) => {
       setCards(data);
     });
 
     // Listener das Compras
-    const unsubscribeShopping = onSnapshot(collection(db, COLLECTIONS.CARDS_SHOPPING), (snapshot) => {
-      const data = snapshot.docs.map(doc => {
-        const docData = doc.data();
-
-        // --- CORREÇÃO DE DATA ---
-        // Se for Timestamp do Firestore, usa .toDate(). Se não, tenta converter string.
-        const dateObj = docData.date?.toDate
-          ? docData.date.toDate()
-          : (docData.date ? new Date(docData.date) : new Date());
-
-        return {
-          ...docData,
-          id: doc.id,
-          dateObj: dateObj
-        };
-      });
-
-      // Ordena por data (mais recente primeiro)
-      const sortedData = data.sort((a, b) => b.dateObj - a.dateObj);
-      setShoppingList(sortedData);
+    const unsubscribeShopping = subscribeCardsShopping((data) => {
+      setShoppingList(data);
       setLoading(false);
     });
 
@@ -93,11 +80,7 @@ const ListCards = () => {
 
   const handleAddCard = async (newCardData) => {
     try {
-      await addDoc(collection(db, COLLECTIONS.CARDS), {
-        ...newCardData,
-        owner: 'Eu',
-        createdAt: new Date()
-      });
+      await addCard(newCardData);
     } catch (error) {
       console.error("Erro ao salvar cartão:", error);
     }
@@ -106,7 +89,7 @@ const ListCards = () => {
   const handleDeleteCard = async (id) => {
     if (window.confirm("Tem certeza que deseja excluir este cartão?")) {
       try {
-        await deleteDoc(doc(db, COLLECTIONS.CARDS, id));
+        await removeCard(id);
       } catch (error) {
         console.error("Erro ao excluir:", error);
       }
@@ -116,36 +99,9 @@ const ListCards = () => {
   // --- LÓGICA DE PARCELAMENTO AUTOMÁTICO (SPLIT) ---
   const handleAddShopping = async (purchaseData) => {
     try {
-      const batch = writeBatch(db); // Inicia o lote
       const installments = Number(purchaseData.installments);
-      const installmentValue = Number(purchaseData.installmentValue);
-
-      // Garante que é um objeto Date
-      const baseDate = new Date(purchaseData.date);
-
-      // Loop para criar UMA entrada por parcela
-      for (let i = 1; i <= installments; i++) {
-        const newDocRef = doc(collection(db, COLLECTIONS.CARDS_SHOPPING));
-
-        // Calcula a data desta parcela (Incrementa os meses)
-        const parcelDate = new Date(baseDate);
-        parcelDate.setMonth(parcelDate.getMonth() + (i - 1));
-
-        // Define os dados desta parcela
-        batch.set(newDocRef, {
-          ...purchaseData,
-          description: installments > 1 ? `${purchaseData.description} (${i}/${installments})` : purchaseData.description,
-          totalValue: installmentValue,
-          date: parcelDate,
-          installmentIndex: i,
-          originalTotal: purchaseData.totalValue,
-          status: 'aberto' // Garante status inicial
-        });
-      }
-
-      await batch.commit();
+      await addCardPurchase(purchaseData);
       alert(`${installments} parcela(s) lançada(s) com sucesso!`);
-
     } catch (error) {
       console.error("Erro ao lançar compra parcelada:", error);
       alert("Erro ao salvar compras.");
@@ -155,7 +111,7 @@ const ListCards = () => {
   const handleDeleteShopping = async (id, description) => {
     if (window.confirm(`Excluir a compra "${description}"? Isso liberará o limite do cartão.`)) {
       try {
-        await deleteDoc(doc(db, COLLECTIONS.CARDS_SHOPPING, id));
+        await removeCardPurchase(id);
       } catch (error) {
         console.error("Erro ao excluir compra:", error);
       }
@@ -169,32 +125,8 @@ const ListCards = () => {
 
   const processPayment = async (purchase, walletId, walletName) => {
     try {
-      const batch = writeBatch(db);
-
-      // 1. Atualiza o status da compra no Shopping para 'pago'
-      const purchaseRef = doc(db, COLLECTIONS.CARDS_SHOPPING, purchase.id);
-      batch.update(purchaseRef, { status: 'pago' });
-
-      // 2. Desconta o valor da Wallet escolhida
-      const walletRef = doc(db, COLLECTIONS.WALLETS, walletId);
-      batch.update(walletRef, { currentBalance: increment(-purchase.totalValue) });
-
-      // 3. Cria o registro histórico na Transactions
-      const newTransactionRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
-      batch.set(newTransactionRef, {
-        description: `Pagamento Cartão: ${purchase.description}`,
-        value: Number(purchase.totalValue),
-        type: 'saida',
-        category: 'Pagamento de Cartão',
-        date: new Date(),
-        walletId: walletId,
-        walletName: walletName,
-        paymentMethod: 'payment_bill'
-      });
-
-      await batch.commit();
+      await payCardPurchase(purchase, walletId, walletName);
       alert("Pagamento registrado! Limite liberado e saldo descontado.");
-
     } catch (error) {
       console.error("Erro no pagamento:", error);
       alert("Erro ao processar pagamento.");

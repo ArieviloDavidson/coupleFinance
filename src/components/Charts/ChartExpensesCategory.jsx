@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { COLLECTIONS } from '../../utils/constants';
+import { fetchExpenseTransactions } from '../../api/transactions';
 import './ChartExpensesCategory.css';
 
 const COLORS = ['#0088FE', '#00c42aff', '#FFBB28', '#ff5703ff', '#AF19FF', '#f80000ff', '#4e4f63da', '#f13bc4ff'];
@@ -17,16 +15,12 @@ const ChartExpensesCategory = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const q = query(collection(db, COLLECTIONS.TRANSACTIONS), where("type", "==", "saida"));
-      const snapshot = await getDocs(q);
+      const transactions = await fetchExpenseTransactions();
 
       const grouped = {};
 
-      snapshot.docs.forEach(doc => {
-        const item = doc.data();
-        const itemDateObj = item.date?.toDate ? item.date.toDate() : new Date(item.date);
-        const itemMonth = itemDateObj.toISOString().slice(0, 7);
-
+      transactions.forEach(item => {
+        const itemMonth = item.dateObj.toISOString().slice(0, 7);
         const cat = item.category || 'Outros';
 
         if (itemMonth === filterDate && cat !== 'Transferência') {
