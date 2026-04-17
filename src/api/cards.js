@@ -2,16 +2,7 @@
 // API: Cards & CardsShopping
 // Centraliza todos os acessos às collections "cards" e "cardsShopping"
 // =============================================
-import {
-  collection,
-  onSnapshot,
-  addDoc,
-  deleteDoc,
-  doc,
-  getDocs,
-  writeBatch,
-  increment
-} from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, getDocs, writeBatch, increment, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { COLLECTIONS } from '../utils/constants';
 
@@ -22,8 +13,8 @@ import { COLLECTIONS } from '../utils/constants';
  */
 export function subscribeCards(callback) {
   return onSnapshot(collection(db, COLLECTIONS.CARDS), (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-    callback(data);
+    const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })); // Mapeia os documentos encontrados
+    callback(data); // Retorna os dados
   });
 }
 
@@ -97,6 +88,18 @@ export async function addCard(cardData) {
 export async function removeCard(cardId) {
   return deleteDoc(doc(db, COLLECTIONS.CARDS, cardId));
 }
+
+/**
+ * Atualiza o limite de um cartão.
+ * @param {string} cardId - ID do cartão
+ * @param {number} newLimit - Novo valor do limite
+ */
+export async function updateCardLimit(cardId, newLimit) {
+  return updateDoc(doc(db, COLLECTIONS.CARDS, cardId), {
+    limit: Number(newLimit)
+  });
+}
+
 
 /**
  * Adiciona uma compra parcelada (cria uma entrada por parcela no batch).

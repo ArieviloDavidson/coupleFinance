@@ -12,8 +12,8 @@ import { COLLECTIONS } from '../utils/constants';
  * @returns {Promise<boolean>} true se permitido, false se não
  */
 export async function checkAllowedUser(email) {
-  const usersRef = collection(db, COLLECTIONS.ALLOWED_USERS);
-  const q = query(usersRef, where("email", "==", email));
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty;
+  const usersRef = collection(db, COLLECTIONS.ALLOWED_USERS); // Pega a coleção de usuários permitidos
+  const q = query(usersRef, where("email", "==", email)); // Cria uma query para buscar o email
+  const querySnapshot = await getDocs(q); // Executa a query
+  return !querySnapshot.empty; // Retorna true se o email for encontrado, false caso contrário
 }

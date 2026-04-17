@@ -6,8 +6,10 @@ import {
   removeCard,
   addCardPurchase,
   removeCardPurchase,
-  payCardPurchase
+  payCardPurchase,
+  updateCardLimit
 } from '../../api/cards';
+import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import './ListCards.css';
 import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
@@ -27,6 +29,11 @@ const ListCards = () => {
   const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
   const [payOffModalOpen, setPayOffModalOpen] = useState(false);
   const [selectedPurchaseToPay, setSelectedPurchaseToPay] = useState(null);
+
+  // Modal de edição de limite
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  const [newLimit, setNewLimit] = useState('');
 
   // 1. Busca Cartões e Compras em paralelo (COM CORREÇÃO DE DATA)
   useEffect(() => {
@@ -138,6 +145,24 @@ const ListCards = () => {
     setPayOffModalOpen(true);
   };
 
+  // --- Editar Limite do Cartão ---
+  const openLimitEdit = (card) => {
+    setEditingCard(card);
+    setNewLimit(Number(card.limit) || '');
+    setIsLimitModalOpen(true);
+  };
+
+  const handleSaveLimit = async () => {
+    if (!editingCard) return;
+    try {
+      await updateCardLimit(editingCard.id, newLimit);
+      setIsLimitModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao atualizar limite:", error);
+      alert("Erro ao atualizar limite do cartão.");
+    }
+  };
+
   if (loading) return <div className="loading">Carregando...</div>;
 
   return (
@@ -210,10 +235,11 @@ const ListCards = () => {
                   ></div>
                 </div>
 
-                <div className="limit-row small">
+                <div className="limit-row small limit-row-clickable" onClick={() => openLimitEdit(card)} title="Clique para editar o limite">
                   <span className="limit-label">Limite Total</span>
-                  <span className="limit-value">
+                  <span className="limit-value limit-editable">
                     {Number(card.limit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    <span className="edit-icon">✎</span>
                   </span>
                 </div>
               </div>
@@ -305,6 +331,28 @@ const ListCards = () => {
         onConfirm={processPayment}
         purchaseItem={selectedPurchaseToPay}
       />
+
+      {/* Modal Editar Limite */}
+      {isLimitModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '300px' }}>
+            <h3>Limite: {editingCard?.name}</h3>
+            <p style={{ fontSize: '0.9rem', color: '#666' }}>Defina o novo limite deste cartão</p>
+
+            <CurrencyInput
+              value={newLimit}
+              onChange={e => setNewLimit(e.target.value)}
+              placeholder="R$ 0,00"
+              className="budget-input"
+            />
+
+            <div className="modal-actions">
+              <button className="cancel-btn" onClick={() => setIsLimitModalOpen(false)}>Cancelar</button>
+              <button className="save-btn" onClick={handleSaveLimit}>Salvar Limite</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
