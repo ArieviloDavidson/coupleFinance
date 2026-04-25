@@ -70,6 +70,12 @@
   color: #7f8c8d;
 }
 
+/* Card Específico: Previsão Mensal (Azul) */
+.forecast-card {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
 /* Graphs Layout */
 /* Herda page-container da shared.css */
 .dashboard-grid {
