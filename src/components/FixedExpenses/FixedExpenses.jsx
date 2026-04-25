@@ -10,7 +10,7 @@ import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal
 import './FixedExpenses.css';
 import '../../shared.css';
 
-const FixedExpenses = () => {
+const FixedExpenses = ({ onNavigate }) => {
   // Estado das despesas fixas
   const [expenses, setExpenses] = useState([]);
   // Estado do novo item
@@ -82,8 +82,14 @@ const FixedExpenses = () => {
 
   const totalPredicted = expenses.reduce((acc, item) => acc + (item.value || 0), 0);
 
-  // Abre o modal para o item específico
+  // Abre o modal para o item específico ou redireciona para Cartões
   const openPayModal = (item) => {
+    // Se a despesa veio do cartão, redireciona para a página de Cartões
+    if (item.source === 'card' && onNavigate) {
+      onNavigate('cards', { cardFilter: item.sourceCardId });
+      return;
+    }
+    // Senão, abre o modal de pagamento normal
     setSelectedExpense(item);
     setPayModalOpen(true);
   };
@@ -106,6 +112,7 @@ const FixedExpenses = () => {
           return (
             <div key={item.id} className={`fixed-item ${isPaid ? 'expense-paid' : ''}`}>
               <div className="fixed-info">
+                {item.source === 'card' && <span className="card-source-badge" title="Vinculada ao cartão">💳</span>}
                 <span>{item.description}</span>
               </div>
 

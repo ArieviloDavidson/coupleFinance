@@ -16,6 +16,13 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 function App() {
   const [activeView, setActiveView] = useState('dashboard');
+  const [navigateData, setNavigateData] = useState(null);
+
+  // Navegação com dados de contexto (ex: filtro de cartão)
+  const handleNavigate = (view, data = null) => {
+    setNavigateData(data);
+    setActiveView(view);
+  };
   
   // Estados de Autenticação
   const [user, setUser] = useState(null);
@@ -76,42 +83,42 @@ function App() {
         <nav className="nav-menu">
           <button 
             className={activeView === 'dashboard' ? 'active' : ''} 
-            onClick={() => setActiveView('dashboard')}
+            onClick={() => { setNavigateData(null); setActiveView('dashboard'); }}
           >
             Visão Geral
           </button>
           
           <button 
             className={activeView === 'transactions' ? 'active' : ''} 
-            onClick={() => setActiveView('transactions')}
+            onClick={() => { setNavigateData(null); setActiveView('transactions'); }}
           >
             Transações
           </button>
 
           <button 
             className={activeView === 'cards' ? 'active' : ''} 
-            onClick={() => setActiveView('cards')}
+            onClick={() => { setNavigateData(null); setActiveView('cards'); }}
           >
             Meus Cartões
           </button>
 
           <button 
             className={activeView === 'wallets' ? 'active' : ''} 
-            onClick={() => setActiveView('wallets')}
+            onClick={() => { setNavigateData(null); setActiveView('wallets'); }}
           >
             Carteiras
           </button>
 
           <button 
             className={activeView === 'budgets' ? 'active' : ''} 
-            onClick={() => setActiveView('budgets')}
+            onClick={() => { setNavigateData(null); setActiveView('budgets'); }}
           >
             Metas / Orçamento
           </button>
 
           <button 
             className={activeView === 'investments' ? 'active' : ''} 
-            onClick={() => setActiveView('investments')}
+            onClick={() => { setNavigateData(null); setActiveView('investments'); }}
           >
             Investimentos
           </button>
@@ -129,9 +136,9 @@ function App() {
 
       {/* ÁREA DE CONTEÚDO À DIREITA */}
       <main className="main-content">
-        {activeView === 'dashboard' && <Dashboard />}
+        {activeView === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
         {activeView === 'transactions' && <Transactions />}
-        {activeView === 'cards' && <ListCards />}
+        {activeView === 'cards' && <ListCards initialCardFilter={navigateData?.cardFilter || ''} />}
         {activeView === 'wallets' && <Wallets />}
         {activeView === 'budgets' && <Budgets />}
         {activeView === 'investments' && <Investments />}

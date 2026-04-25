@@ -14,7 +14,7 @@ import FixedEntries from '../../components/FixedEntries/FixedEntries';
 import './Dashboard.css';
 import '../../shared.css';
 
-const Dashboard = () => {
+const Dashboard = ({ onNavigate }) => {
   // Estados
   const [totalBalance, setTotalBalance] = useState(0); // Saldo total das carteiras
   const [isEntriesModalOpen, setIsEntriesModalOpen] = useState(false); // Modal de entradas fixas
@@ -125,7 +125,7 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-grid page-container">
-        <FixedExpenses />
+        <FixedExpenses onNavigate={onNavigate} />
         <ChartExpensesCategory />
         <ChartCreditLimit />
       </div>

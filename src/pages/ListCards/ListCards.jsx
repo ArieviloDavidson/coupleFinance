@@ -15,7 +15,7 @@ import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
 import PayOffModal from '../../components/PayOffModal/PayOffModal';
 
-const ListCards = () => {
+const ListCards = ({ initialCardFilter }) => {
 
   // Filtro de mês/ano
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
@@ -53,6 +53,13 @@ const ListCards = () => {
       unsubscribeShopping();
     };
   }, []);
+
+  // Aplica filtro externo quando recebido via navegação
+  useEffect(() => {
+    if (initialCardFilter) {
+      setSelectedCardFilter(initialCardFilter);
+    }
+  }, [initialCardFilter]);
 
   const filteredShoppingList = shoppingList.filter(item => {
     // Filtro de Mês (YYYY-MM)
@@ -110,6 +117,11 @@ const ListCards = () => {
       await addCardPurchase(purchaseData);
       alert(`${installments} parcela(s) lançada(s) com sucesso!`);
     } catch (error) {
+      if (error.message?.startsWith('DUPLICATE_FIXED_EXPENSE:')) {
+        const name = error.message.split(':')[1];
+        alert(`A despesa fixa "${name}" já existe! Remova-a antes de criar uma nova compra parcelada com esse nome.`);
+        return;
+      }
       console.error("Erro ao lançar compra parcelada:", error);
       alert("Erro ao salvar compras.");
     }

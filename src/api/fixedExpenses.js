@@ -33,7 +33,8 @@ export function subscribeFixedExpenses(callback) {
 export async function addFixedExpense(data) {
   return addDoc(collection(db, COLLECTIONS.FIXED_EXPENSES), {
     description: data.description,
-    value: Number(data.value)
+    value: Number(data.value),
+    source: 'manual'
   });
 }
 

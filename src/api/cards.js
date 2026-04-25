@@ -2,7 +2,7 @@
 // API: Cards & CardsShopping
 // Centraliza todos os acessos às collections "cards" e "cardsShopping"
 // =============================================
-import { collection, onSnapshot, addDoc, deleteDoc, doc, getDocs, writeBatch, increment, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, getDocs, writeBatch, increment, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { COLLECTIONS } from '../utils/constants';
 
@@ -109,6 +109,30 @@ export async function addCardPurchase(purchaseData) {
   const batch = writeBatch(db);
   const installments = Number(purchaseData.installments);
   const installmentValue = Number(purchaseData.installmentValue);
+
+  // AUTO-CRIAÇÃO: Despesa Fixa para Contas/Assinaturas parceladas (>1x)
+  const autoFixedCategories = ['Contas', 'Assinaturas'];
+  if (autoFixedCategories.includes(purchaseData.category) && installments > 1) {
+    // Verifica se já existe despesa fixa com mesmo nome
+    const q = query(
+      collection(db, COLLECTIONS.FIXED_EXPENSES),
+      where('description', '==', purchaseData.description)
+    );
+    const existing = await getDocs(q);
+
+    if (!existing.empty) {
+      throw new Error(`DUPLICATE_FIXED_EXPENSE:${purchaseData.description}`);
+    }
+
+    // Cria despesa fixa no MESMO batch (atomicidade)
+    const fixedRef = doc(collection(db, COLLECTIONS.FIXED_EXPENSES));
+    batch.set(fixedRef, {
+      description: purchaseData.description,
+      value: installmentValue,
+      source: 'card',
+      sourceCardId: purchaseData.cardId
+    });
+  }
 
   // Garante que é um objeto Date
   const baseDate = new Date(purchaseData.date);
