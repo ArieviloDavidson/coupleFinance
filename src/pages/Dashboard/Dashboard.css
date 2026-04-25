@@ -17,7 +17,6 @@
   justify-content: center;
   align-items: flex-start;
   gap: 5px;
-  width: 70%;
 }
 /* Botão de Entradas Fixas */
 .btn-view-entries {
@@ -32,9 +31,8 @@
 .header-cards {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
     justify-content: flex-end;
-    width: 30%;
+    flex: 1;
     gap: 15px;
 }
 /* Estilo Base do Card (Comum aos dois) */
