@@ -107,3 +107,27 @@ export async function deleteTransactionWithRefund(transaction) {
 
   await batch.commit();
 }
+
+/**
+ * Cria uma compra no cartão de crédito (1x) a partir do formulário de transação.
+ * @param {Object} transData - Dados da transação (description, value, category, date, cardId)
+ */
+export async function addTransactionWithCard(transData) {
+  const batch = writeBatch(db);
+
+  const shoppingRef = doc(collection(db, COLLECTIONS.CARDS_SHOPPING));
+  batch.set(shoppingRef, {
+    description: transData.description,
+    totalValue: transData.value,
+    installments: 1,
+    installmentValue: transData.value,
+    date: transData.date,
+    cardId: transData.cardId,
+    category: transData.category,
+    status: 'aberto',
+    installmentIndex: 1,
+    originalTotal: transData.value
+  });
+
+  await batch.commit();
+}

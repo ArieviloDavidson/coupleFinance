@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   subscribeTransactions,
   addTransactionWithWalletUpdate,
-  deleteTransactionWithRefund
+  deleteTransactionWithRefund,
+  addTransactionWithCard
 } from '../../api/transactions';
 import TransactionForm from '../../components/TransactionForm/TransactionForm';
 import './Transactions.css';
@@ -34,10 +35,15 @@ const Transactions = () => {
     return () => unsubscribe();
   }, []);
 
-  // 2. ADICIONAR: Cria a transação e Atualiza o Saldo da Carteira (Atômico)
+  // 2. ADICIONAR: Cria a transação (via Carteira ou Cartão de Crédito)
   const handleAddTransaction = async (newTrans) => {
     try {
-      await addTransactionWithWalletUpdate(newTrans);
+      if (newTrans.paymentMethod === 'card') {
+        await addTransactionWithCard(newTrans);
+        alert(`Transação "${newTrans.description}" lançada no cartão!`);
+      } else {
+        await addTransactionWithWalletUpdate(newTrans);
+      }
     } catch (error) {
       console.error("Erro ao criar transação:", error);
       alert("Erro ao salvar. O saldo não foi alterado.");
