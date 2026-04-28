@@ -8,6 +8,7 @@ import Transactions from './pages/Transactions/Transactions';
 import Wallets from './pages/Wallets/Wallets';
 import Budgets from './pages/Budgets/Budgets';
 import Investments from './pages/Investments/Investments';
+import Reminders from './pages/Reminders/Reminders';
 
 // Auth
 import Login from './pages/Login/Login';
@@ -117,6 +118,13 @@ function App() {
           </button>
 
           <button 
+            className={activeView === 'reminders' ? 'active' : ''} 
+            onClick={() => { setNavigateData(null); setActiveView('reminders'); }}
+          >
+            Lembretes
+          </button>
+
+          <button 
             className={activeView === 'investments' ? 'active' : ''} 
             onClick={() => { setNavigateData(null); setActiveView('investments'); }}
           >
@@ -141,6 +149,7 @@ function App() {
         {activeView === 'cards' && <ListCards initialCardFilter={navigateData?.cardFilter || ''} />}
         {activeView === 'wallets' && <Wallets />}
         {activeView === 'budgets' && <Budgets />}
+        {activeView === 'reminders' && <Reminders />}
         {activeView === 'investments' && <Investments />}
       </main>
     </div>

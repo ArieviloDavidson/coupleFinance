@@ -1,0 +1,18 @@
+/* ReminderPayModal - Estilos específicos */
+
+.reminder-toggle-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Toggle colorido para tipo de transação */
+.toggle-btn.active.toggle-saida {
+  background-color: #c0392b;
+  border-color: #c0392b;
+}
+
+.toggle-btn.active.toggle-entrada {
+  background-color: #27ae60;
+  border-color: #27ae60;
+}

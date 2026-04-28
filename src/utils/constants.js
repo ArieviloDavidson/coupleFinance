@@ -37,4 +37,5 @@ export const COLLECTIONS = {
     ALLOWED_USERS: 'allowed_users',
     INVESTMENT_TYPES: 'investmentTypes',
     INVESTMENTS: 'investments',
+    REMINDERS: 'reminders',
 };
