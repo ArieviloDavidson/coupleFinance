@@ -80,10 +80,11 @@ export async function removeReminder(id) {
  * @param {number} value - Valor a pagar/receber
  * @param {string} transType - 'entrada' ou 'saida'
  * @param {string} category - Categoria da transação
+ * @param {Date} [customDate] - Data opcional da transação (padrão: hoje)
  */
-export async function payReminderWithWallet(reminder, walletId, walletName, value, transType, category) {
+export async function payReminderWithWallet(reminder, walletId, walletName, value, transType, category, customDate) {
   const batch = writeBatch(db);
-  const today = new Date();
+  const today = customDate || new Date();
 
   // A. Cria transação
   const transRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
@@ -116,10 +117,11 @@ export async function payReminderWithWallet(reminder, walletId, walletName, valu
  * @param {string} cardId - ID do cartão
  * @param {number} value - Valor a pagar
  * @param {string} category - Categoria da transação
+ * @param {Date} [customDate] - Data opcional da transação (padrão: hoje)
  */
-export async function payReminderWithCard(reminder, cardId, value, category) {
+export async function payReminderWithCard(reminder, cardId, value, category, customDate) {
   const batch = writeBatch(db);
-  const today = new Date();
+  const today = customDate || new Date();
 
   // A. Cria registro em cardsShopping
   const shoppingRef = doc(collection(db, COLLECTIONS.CARDS_SHOPPING));

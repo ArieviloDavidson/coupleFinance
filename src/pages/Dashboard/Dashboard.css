@@ -68,10 +68,18 @@
   color: #7f8c8d;
 }
 
-/* Card Específico: Previsão Mensal (Azul) */
+/* Card Específico: Previsão Mensal */
 .forecast-card {
-  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
+  transition: background 0.4s ease;
+}
+
+.forecast-card.forecast-positive {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+.forecast-card.forecast-negative {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
 }
 
 /* Graphs Layout */

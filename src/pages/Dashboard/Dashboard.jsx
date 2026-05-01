@@ -100,9 +100,9 @@ const Dashboard = ({ onNavigate }) => {
 
         <div className="header-cards">
 
-          <div className="dashboard-card forecast-card">
+          <div className={`dashboard-card forecast-card ${monthlyForecast >= 0 ? 'forecast-positive' : 'forecast-negative'}`}>
             <span>Previsão Mensal</span>
-            <strong style={{ color: monthlyForecast >= 0 ? '#fff' : '#e74c3c' }}>
+            <strong>
               {monthlyForecast.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </strong>
           </div>

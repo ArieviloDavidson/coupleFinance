@@ -13,6 +13,10 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
   const [transType, setTransType] = useState(TRANSACTION_TYPES.SAIDA);
   const [category, setCategory] = useState('');
   const [value, setValue] = useState('');
+  const [transDate, setTransDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().slice(0, 10); // YYYY-MM-DD
+  });
   const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' ou 'card'
   const [selectedSourceId, setSelectedSourceId] = useState('');
 
@@ -62,6 +66,10 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
       return;
     }
 
+    // Converte a data selecionada para um objeto Date (meio-dia para evitar problemas de fuso)
+    const [year, month, day] = transDate.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day, 12, 0, 0);
+
     if (paymentMethod === 'wallet') {
       const selectedWallet = wallets.find(w => w.id === selectedSourceId);
       onSave({
@@ -69,7 +77,7 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
         value: numericValue,
         type: transType,
         category,
-        date: new Date(),
+        date: selectedDate,
         walletId: selectedSourceId,
         walletName: selectedWallet ? selectedWallet.name : 'Desconhecida',
         paymentMethod: 'wallet'
@@ -81,7 +89,7 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
         value: numericValue,
         type: transType,
         category,
-        date: new Date(),
+        date: selectedDate,
         cardId: selectedSourceId,
         paymentMethod: 'card'
       });
@@ -93,6 +101,7 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
     setTransType(TRANSACTION_TYPES.SAIDA);
     setCategory('');
     setValue('');
+    setTransDate(new Date().toISOString().slice(0, 10));
     setPaymentMethod('wallet');
     setSelectedSourceId('');
   };
@@ -162,6 +171,18 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
               required
             />
             <small>Informe o valor da transação.</small>
+          </div>
+
+          {/* Data */}
+          <div className="form-group">
+            <label>Data</label>
+            <input
+              type="date"
+              value={transDate}
+              onChange={e => setTransDate(e.target.value)}
+              required
+              style={{ width: '100%', padding: '10px' }}
+            />
           </div>
 
           {/* Método de Pagamento - Toggle Buttons */}

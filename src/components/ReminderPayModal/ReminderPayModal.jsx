@@ -18,10 +18,14 @@ const ReminderPayModal = ({ isOpen, onClose, reminderItem }) => {
   // Permite editar o valor na hora de pagar
   const [currentValue, setCurrentValue] = useState('');
 
+  // Permite escolher a data da transação
+  const [transDate, setTransDate] = useState('');
+
   // Carrega Wallets e Cards quando abre
   useEffect(() => {
     if (isOpen && reminderItem) {
       setCurrentValue(reminderItem.value);
+      setTransDate(new Date().toISOString().slice(0, 10)); // Data padrão: hoje
       setTransType(TRANSACTION_TYPES.SAIDA);
       setPaymentMethod('wallet');
 
@@ -63,12 +67,16 @@ const ReminderPayModal = ({ isOpen, onClose, reminderItem }) => {
     try {
       const val = Number(currentValue);
 
+      // Converte a data selecionada para um objeto Date (meio-dia para evitar problemas de fuso)
+      const [year, month, day] = transDate.split('-').map(Number);
+      const selectedDate = new Date(year, month - 1, day, 12, 0, 0);
+
       if (paymentMethod === 'wallet') {
         const walletName = wallets.find(w => w.id === selectedSourceId)?.name || 'Carteira';
-        await payReminderWithWallet(reminderItem, selectedSourceId, walletName, val, transType, category);
+        await payReminderWithWallet(reminderItem, selectedSourceId, walletName, val, transType, category, selectedDate);
         alert(`Lembrete "${reminderItem.description}" processado via ${walletName}!`);
       } else {
-        await payReminderWithCard(reminderItem, selectedSourceId, val, category);
+        await payReminderWithCard(reminderItem, selectedSourceId, val, category, selectedDate);
         alert(`Lembrete "${reminderItem.description}" lançado no cartão!`);
       }
 
@@ -137,6 +145,17 @@ const ReminderPayModal = ({ isOpen, onClose, reminderItem }) => {
             onChange={e => setCurrentValue(e.target.value)}
           />
           <small>Você pode ajustar o valor se necessário.</small>
+        </div>
+
+        {/* Data */}
+        <div className="form-group">
+          <label>Data</label>
+          <input
+            type="date"
+            value={transDate}
+            onChange={e => setTransDate(e.target.value)}
+            style={{ width: '100%', padding: '10px' }}
+          />
         </div>
 
         {/* Método de Pagamento */}
