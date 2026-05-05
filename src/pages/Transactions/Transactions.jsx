@@ -65,12 +65,19 @@ const Transactions = () => {
     }
   };
 
-  // Lista de carteiras únicas extraída das transações
+  // Carteiras únicas apenas do mês selecionado
   const walletOptions = useMemo(() => {
     const names = new Set();
-    transactions.forEach(t => { if (t.walletName) names.add(t.walletName); });
+    transactions.forEach(t => {
+      if (!t.walletName) return;
+      if (filterDate) {
+        const itemDate = t.dateObj.toISOString().slice(0, 7);
+        if (itemDate !== filterDate) return;
+      }
+      names.add(t.walletName);
+    });
     return [...names].sort();
-  }, [transactions]);
+  }, [transactions, filterDate]);
 
   // 4. Lógica de Filtragem no Front-end
   const filteredTransactions = transactions.filter(item => {
