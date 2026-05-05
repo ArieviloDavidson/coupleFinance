@@ -47,8 +47,7 @@
   gap: 10px;
 }
 
-.filter-input,
-.filter-select {
+.filter-input {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;

@@ -8,7 +8,7 @@ import {
 import TransactionForm from '../../components/TransactionForm/TransactionForm';
 import './Transactions.css';
 
-import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
+import { TRANSACTION_TYPES } from '../../utils/constants';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -16,9 +16,7 @@ const Transactions = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filtros
-  const [filterType, setFilterType] = useState('todos');
-  const [filterCategory, setFilterCategory] = useState('todos');
-  const [searchTerm, setSearchTerm] = useState(''); // Novo estado de busca
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState(() => {
     // Inicia com o mês atual (YYYY-MM)
     const today = new Date();
@@ -68,17 +66,11 @@ const Transactions = () => {
 
   // 4. Lógica de Filtragem no Front-end
   const filteredTransactions = transactions.filter(item => {
-    // Filtro de Tipo
-    if (filterType !== 'todos' && item.type !== filterType) return false;
-
     // Filtro de Data (Mês/Ano)
     if (filterDate) {
       const itemDate = item.dateObj.toISOString().slice(0, 7);
       if (itemDate !== filterDate) return false;
     }
-
-    // Filtro de Categoria
-    if (filterCategory !== 'todos' && item.category !== filterCategory) return false;
 
     // Filtro de Busca por Texto (Descrição)
     if (searchTerm && !item.description.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -120,27 +112,6 @@ const Transactions = () => {
             className="filter-input"
           />
 
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="filter-select"
-          >
-            <option value="todos">Todos</option>
-            <option value={TRANSACTION_TYPES.ENTRADA}>Entradas</option>
-            <option value={TRANSACTION_TYPES.SAIDA}>Saídas</option>
-          </select>
-
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="filter-select"
-          >
-            <option value="todos">Todas as Categorias</option>
-            {/* Combina todas as categorias de entrada e saída para o filtro */}
-            {[...CATEGORIES[TRANSACTION_TYPES.ENTRADA], ...CATEGORIES[TRANSACTION_TYPES.SAIDA]].map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
         </div>
       </div>
 
