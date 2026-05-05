@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   subscribeTransactions,
   addTransactionWithWalletUpdate,
@@ -17,6 +17,7 @@ const Transactions = () => {
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterWallet, setFilterWallet] = useState('todos');
   const [filterDate, setFilterDate] = useState(() => {
     // Inicia com o mês atual (YYYY-MM)
     const today = new Date();
@@ -64,6 +65,13 @@ const Transactions = () => {
     }
   };
 
+  // Lista de carteiras únicas extraída das transações
+  const walletOptions = useMemo(() => {
+    const names = new Set();
+    transactions.forEach(t => { if (t.walletName) names.add(t.walletName); });
+    return [...names].sort();
+  }, [transactions]);
+
   // 4. Lógica de Filtragem no Front-end
   const filteredTransactions = transactions.filter(item => {
     // Filtro de Data (Mês/Ano)
@@ -71,6 +79,9 @@ const Transactions = () => {
       const itemDate = item.dateObj.toISOString().slice(0, 7);
       if (itemDate !== filterDate) return false;
     }
+
+    // Filtro de Carteira
+    if (filterWallet !== 'todos' && item.walletName !== filterWallet) return false;
 
     // Filtro de Busca por Texto (Descrição)
     if (searchTerm && !item.description.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -112,6 +123,16 @@ const Transactions = () => {
             className="filter-input"
           />
 
+          <select
+            value={filterWallet}
+            onChange={(e) => setFilterWallet(e.target.value)}
+            className="filter-input"
+          >
+            <option value="todos">Todas as Carteiras</option>
+            {walletOptions.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
