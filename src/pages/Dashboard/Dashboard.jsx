@@ -10,6 +10,7 @@ import FixedExpenses from '../../components/FixedExpenses/FixedExpenses';
 import ChartExpensesCategory from '../../components/Charts/ChartExpensesCategory';
 import ChartCreditLimit from '../../components/Charts/ChartCreditLimit';
 import FixedEntries from '../../components/FixedEntries/FixedEntries';
+import DashboardCard from '../../components/DashboardCard/DashboardCard';
 // CSS
 import './Dashboard.css';
 import '../../shared.css';
@@ -99,28 +100,25 @@ const Dashboard = ({ onNavigate }) => {
         </div>
 
         <div className="header-cards">
+          <DashboardCard
+            label="Previsão Mensal"
+            value={monthlyForecast}
+            variant="forecast"
+            className={monthlyForecast >= 0 ? 'forecast-positive' : 'forecast-negative'}
+          />
 
-          <div className={`dashboard-card forecast-card ${monthlyForecast >= 0 ? 'forecast-positive' : 'forecast-negative'}`}>
-            <span>Previsão Mensal</span>
-            <strong>
-              {monthlyForecast.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </strong>
-          </div>
+          <DashboardCard
+            label="Previsão (Fixos)"
+            value={predictionValue}
+            variant="prediction"
+            valueStyle={{ color: predictionValue >= 0 ? '#2e4761ff' : '#c0392b' }}
+          />
 
-          <div className="dashboard-card prediction-card">
-            <span>Previsão (Fixos)</span>
-            {/* Condicional: Se for negativo, fica vermelho, senão, fica azul */}
-            <strong style={{ color: predictionValue >= 0 ? '#2e4761ff' : '#c0392b' }}>
-              {predictionValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </strong>
-          </div>
-
-          <div className="dashboard-card balance-card">
-            <span>Saldo Disponível</span>
-            <strong>
-              {totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </strong>
-          </div>
+          <DashboardCard
+            label="Saldo Disponível"
+            value={totalBalance}
+            variant="balance"
+          />
         </div>
       </div>
 

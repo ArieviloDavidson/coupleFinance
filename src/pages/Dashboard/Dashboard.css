@@ -35,52 +35,6 @@
     flex: 1;
     gap: 15px;
 }
-/* Estilo Base do Card (Comum aos dois) */
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.dashboard-card span {
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.dashboard-card strong {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-/* Card Específico: Saldo (Verde/Azul original) */
-.balance-card {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
-}
-
-.prediction-card {
-  background-color: #ecf0f1; /* Cinza claro */
-  border: 1px solid #bdc3c7;
-  color: #7f8c8d;
-}
-
-/* Card Específico: Previsão Mensal */
-.forecast-card {
-  color: white;
-  transition: background 0.4s ease;
-}
-
-.forecast-card.forecast-positive {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-}
-
-.forecast-card.forecast-negative {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
 
 /* Graphs Layout */
 /* Herda page-container da shared.css */
