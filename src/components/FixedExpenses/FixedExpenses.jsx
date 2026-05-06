@@ -99,7 +99,7 @@ const FixedExpenses = ({ onNavigate }) => {
       <div className="fixed-header">
         <h3>Despesas Fixas</h3>
         <div className="predicted-badge">
-          <small>Previsão Mensal</small>
+          <small>Custo de Vida</small>
           <strong>
             {totalPredicted.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </strong>
