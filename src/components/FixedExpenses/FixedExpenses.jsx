@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 // API
 import { subscribeFixedExpenses, addFixedExpense, removeFixedExpense } from '../../api/fixedExpenses';
 import { fetchExpenseTransactions } from '../../api/transactions';
+import { fetchCardsShopping } from '../../api/cards';
 // COMPONENTS
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal';
@@ -39,18 +40,25 @@ const FixedExpenses = ({ onNavigate }) => {
       const now = new Date();
       const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
 
-      const transactions = await fetchExpenseTransactions();
       const paidNames = new Set();
 
+      // 1. Verifica transações normais (pagamento via carteira)
+      const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
-        // Filtra por categoria 'Contas' no JS
         if (t.category !== 'Contas') return;
-
-        // Filtra pelo mês atual no JS
         const tMonth = t.dateObj.toISOString().slice(0, 7);
-
         if (tMonth === currentMonth) {
           paidNames.add(t.description);
+        }
+      });
+
+      // 2. Verifica compras no cartão (pagamento via cartão de crédito)
+      const cardPurchases = await fetchCardsShopping();
+      cardPurchases.forEach(p => {
+        if (p.category !== 'Contas') return;
+        const pMonth = p.dateObj.toISOString().slice(0, 7);
+        if (pMonth === currentMonth) {
+          paidNames.add(p.description);
         }
       });
 

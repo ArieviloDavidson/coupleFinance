@@ -5,6 +5,7 @@ import { subscribeWallets } from '../../api/wallets';
 import { subscribeFixedExpenses } from '../../api/fixedExpenses';
 import { subscribeFixedEntries } from '../../api/fixedEntries';
 import { fetchExpenseTransactions } from '../../api/transactions';
+import { fetchCardsShopping } from '../../api/cards';
 // COMPONENTS
 import FixedExpenses from '../../components/FixedExpenses/FixedExpenses';
 import ChartExpensesCategory from '../../components/Charts/ChartExpensesCategory';
@@ -52,19 +53,30 @@ const Dashboard = ({ onNavigate }) => {
     return () => unsubscribe();
   }, []);
 
-  // 4. Busca despesas pagas no mês atual
+  // 4. Busca despesas pagas no mês atual (transações + compras no cartão)
   useEffect(() => {
     const fetchPaid = async () => {
       const now = new Date();
       const currentMonth = now.toISOString().slice(0, 7);
-      const transactions = await fetchExpenseTransactions();
       const paidNames = new Set();
 
+      // 1. Verifica transações normais (pagamento via carteira)
+      const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
         if (t.category !== 'Contas') return;
         const tMonth = t.dateObj.toISOString().slice(0, 7);
         if (tMonth === currentMonth) {
           paidNames.add(t.description);
+        }
+      });
+
+      // 2. Verifica compras no cartão (pagamento via cartão de crédito)
+      const cardPurchases = await fetchCardsShopping();
+      cardPurchases.forEach(p => {
+        if (p.category !== 'Contas') return;
+        const pMonth = p.dateObj.toISOString().slice(0, 7);
+        if (pMonth === currentMonth) {
+          paidNames.add(p.description);
         }
       });
 
