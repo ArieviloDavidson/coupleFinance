@@ -6,6 +6,7 @@ import { fetchBudgetsByMonth, saveBudgetLimit } from '../../api/budgets';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import './Budgets.css';
+import '../../shared.css';
 
 import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 
@@ -164,11 +165,11 @@ const Budgets = () => {
   };
 
   return (
-    <div className="budgets-container">
-      <div className="budgets-header">
-        <div className="header-title">
-          <h2>Metas e Orçamentos</h2>
-          <p>Planeje seus limites (Considerando vencimento da fatura)</p>
+    <div className="budgets-container container">
+      <div className="budgets-header header-container">
+        <div className="header-left">
+          <h1 className="page-title">Metas e Orçamentos</h1>
+          <p className="page-subtitle">Planeje seus limites (Considerando vencimento da fatura)</p>
         </div>
 
         <div className="budgets-filters">
