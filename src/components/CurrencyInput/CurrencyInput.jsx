@@ -5,7 +5,10 @@ const CurrencyInput = ({ value, onChange, name, placeholder = "0,00", required =
 
     // Função para formatar o valor numérico (float) para string "R$ X.XXX,XX" ou apenas "X.XXX,XX"
     const formatCurrency = (val) => {
-        if (!val) return '';
+        // PERMITIR VALOR ZERO: A condição anterior era `if (!val)`, que barrava o número 0 por ser "falsy".
+        // Agora verificamos explicitamente se o valor não é vazio ou nulo,
+        // permitindo que o 0 seja formatado corretamente para "0,00".
+        if (val === '' || val === null || val === undefined) return '';
         // Converte para número e formata
         return Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     };
@@ -36,7 +39,10 @@ const CurrencyInput = ({ value, onChange, name, placeholder = "0,00", required =
             type="text"
             inputMode="numeric"
             name={name}
-            value={value ? formatCurrency(value) : ''}
+            // PERMITIR VALOR ZERO: Mudamos a condição `value ?` para não invalidar o 0.
+            // Antes o 0 resultava em `''` (vazio), o que acionava a validação do `required`
+            // bloqueando a criação da carteira, mesmo não havendo bloqueio no componente pai.
+            value={(value !== '' && value !== null && value !== undefined) ? formatCurrency(value) : ''}
             onChange={handleChange}
             placeholder={placeholder}
             className={`currency-input ${className}`}
