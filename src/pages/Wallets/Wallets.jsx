@@ -3,6 +3,7 @@ import { subscribeWallets, addWallet, removeWallet, transferBetweenWallets } fro
 import WalletsForm from '../../components/WalletsForm/WalletsForm';
 import TransferModal from '../../components/TransferModal/TransferModal';
 import './Wallets.css';
+import '../../shared.css';
 
 const Wallets = () => {
   const [wallets, setWallets] = useState([]);
@@ -76,21 +77,24 @@ const Wallets = () => {
   if (loading) return <div className="loading">Carregando carteiras...</div>;
 
   return (
-    <div className="wallets-wrapper">
-      <div className="header-actions">
-        <h2>Minhas Carteiras</h2>
+    <div className="wallets-wrapper container">
+      <div className="header-actions header-container">
+        <div className="header-left">
+          <h1 className="page-title">Minhas Carteiras</h1>
+          <p className="page-subtitle">Gestão de saldos e contas</p>
+        </div>
 
         {/* Container para os botões ficarem alinhados */}
         <div className="header-buttons" style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn-new-wallet" onClick={() => setIsModalOpen(true)}>
+          <button className="btn-new-wallet btn" onClick={() => setIsModalOpen(true)}>
             + Nova Carteira
           </button>
 
           {/* NOVO BOTÃO */}
           <button
-            className="btn-transfer"
+            className="btn-transfer btn"
             onClick={() => setIsTransferModalOpen(true)}
-            style={{ backgroundColor: '#8e44ad', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}
+            style={{ backgroundColor: '#8e44ad', color: 'white' }}
           >
             ⇆ Nova Transferência
           </button>
@@ -98,7 +102,8 @@ const Wallets = () => {
       </div>
 
       {/* Card de Resumo Total */}
-      <div className="total-balance-card">
+      <div className="wallets-content page-container">
+        <div className="total-balance-card">
         <span>Saldo Total Disponível</span>
         <strong>{totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
       </div>
@@ -125,6 +130,7 @@ const Wallets = () => {
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {/* Modais */}

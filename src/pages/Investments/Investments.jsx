@@ -211,25 +211,26 @@ const Investments = () => {
   if (loading) return <div className="loading">Carregando investimentos...</div>;
 
   return (
-    <div className="investments-container">
+    <div className="investments-container container">
 
       {/* ===== HEADER ===== */}
-      <div className="investments-header">
-        <div className="header-title">
-          <h2>Investimentos</h2>
-          <p>Controle de aportes e resgates por tipo</p>
+      <div className="investments-header header-container">
+        <div className="header-left">
+          <h1 className="page-title">Investimentos</h1>
+          <p className="page-subtitle">Controle de aportes e resgates por tipo</p>
         </div>
 
         <div className="header-buttons">
-          <button className="btn-new-type" onClick={() => setIsTypeFormOpen(true)}>
+          <button className="btn-new-type btn" onClick={() => setIsTypeFormOpen(true)}>
             + Novo Tipo
           </button>
-          <button className="btn-new-investment" onClick={() => setIsFormOpen(true)}>
+          <button className="btn-new-investment btn" onClick={() => setIsFormOpen(true)}>
             + Nova Movimentação
           </button>
         </div>
       </div>
 
+      <div className="investments-content page-container">
       {/* ===== CARDS DE TIPO ===== */}
       <div className="investment-types-grid">
         {typeCards.map(card => (
@@ -355,6 +356,8 @@ const Investments = () => {
             ))
           )}
         </div>
+      </div>
+
       </div>
 
       {/* ===== MODAIS ===== */}

@@ -1,8 +1,25 @@
 /* src/components/Wallets/Wallets.css */
-.wallets-wrapper { padding: 20px; }
+/* Herda container da shared.css */
+.wallets-wrapper { }
 
+/* Herda header da shared.css */
 .header-actions {
-  display: flex; align-items: center; gap: 20px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 20px;
+}
+
+/* Títulos */
+.header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+/* Herda page-container da shared.css */
+.wallets-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .btn-new-wallet {

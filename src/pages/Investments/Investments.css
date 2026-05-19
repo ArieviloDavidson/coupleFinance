@@ -1,33 +1,33 @@
 /* src/components/Investments/Investments.css */
 
+/* Herda container da shared.css */
 .investments-container {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* ===== HEADER ===== */
+/* Herda header da shared.css */
 .investments-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
-  margin-bottom: 25px;
 }
 
-.investments-header .header-title h2 {
-  margin: 0;
-  color: #2c3e50;
+/* Títulos */
+.header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
 }
 
-.investments-header .header-title p {
-  margin: 0;
-  color: #7f8c8d;
-  font-size: 0.9rem;
+/* Herda page-container da shared.css */
+.investments-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .investments-header .header-buttons {

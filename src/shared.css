@@ -3,6 +3,7 @@
 .page-title {
     margin: 0;
     color: var(--color-title);
+    font-size: 2rem;
 }
 
 .page-subtitle {
@@ -18,14 +19,16 @@
 }
 
 .header-container {
-    height: 100px;
-    padding: 20px;
+    min-height: 100px;
+    padding: 20px 30px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .page-container {
     height: 75%;
     max-width: 100%;
-    padding: 20px;
+    padding: 0px 30px 20px 30px;
 }
 
 .btn {

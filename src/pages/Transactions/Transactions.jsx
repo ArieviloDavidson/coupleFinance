@@ -7,6 +7,7 @@ import {
 } from '../../api/transactions';
 import TransactionForm from '../../components/TransactionForm/TransactionForm';
 import './Transactions.css';
+import '../../shared.css';
 
 import { TRANSACTION_TYPES } from '../../utils/constants';
 
@@ -106,11 +107,14 @@ const Transactions = () => {
   if (loading) return <div className="loading">Carregando movimentações...</div>;
 
   return (
-    <div className="transactions-container">
-      <div className="transactions-header">
-        <h2>Movimentações</h2>
+    <div className="transactions-container container">
+      <div className="transactions-header header-container">
+        <div className="header-left">
+          <h1 className="page-title">Movimentações</h1>
+          <p className="page-subtitle">Histórico de entradas e saídas</p>
+        </div>
 
-        <button className="btn-new-trans" onClick={() => setIsModalOpen(true)}>
+        <button className="btn-new-trans btn" onClick={() => setIsModalOpen(true)}>
           + Nova Movimentação
         </button>
 
@@ -143,8 +147,9 @@ const Transactions = () => {
         </div>
       </div>
 
-      <div className="balance-summary">
-        <span>Total no período: </span>
+      <div className="transactions-content page-container">
+        <div className="balance-summary">
+          <span>Total no período: </span>
         <strong className={totalBalance >= 0 ? 'text-green' : 'text-red'}>
           {totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
         </strong>
@@ -191,6 +196,7 @@ const Transactions = () => {
             </div>
           ))
         )}
+        </div>
       </div>
 
       <TransactionForm

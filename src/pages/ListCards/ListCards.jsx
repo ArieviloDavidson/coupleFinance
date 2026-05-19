@@ -11,6 +11,7 @@ import {
 } from '../../api/cards';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import './ListCards.css';
+import '../../shared.css';
 import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
 import PayOffModal from '../../components/PayOffModal/PayOffModal';
@@ -178,14 +179,17 @@ const ListCards = ({ initialCardFilter }) => {
   if (loading) return <div className="loading">Carregando...</div>;
 
   return (
-    <div className="cards-wrapper">
-      <div className="header-actions">
-        <h2>Meus Cartões</h2>
+    <div className="cards-wrapper container">
+      <div className="header-actions header-container">
+        <div className="header-left">
+          <h1 className="page-title">Meus Cartões</h1>
+          <p className="page-subtitle">Gestão de cartões e faturas</p>
+        </div>
         <div className="header-buttons">
-          <button className="btn-new-card" onClick={() => setIsModalOpen(true)}>
+          <button className="btn-new-card btn" onClick={() => setIsModalOpen(true)}>
             + Novo Cartão
           </button>
-          <button className="btn-shopping" onClick={() => setIsShoppingModalOpen(true)}>
+          <button className="btn-shopping btn" onClick={() => setIsShoppingModalOpen(true)}>
             + Compra Crédito
           </button>
           {/* NOVO: Filtro de Cartão */}
@@ -212,6 +216,7 @@ const ListCards = ({ initialCardFilter }) => {
       </div>
 
       {/* GRID DE CARTÕES */}
+      <div className="cards-content page-container">
       <div className="cards-grid">
         {cards.map(card => {
           // Calcula métricas individuais
@@ -324,6 +329,7 @@ const ListCards = ({ initialCardFilter }) => {
             })}
           </div>
         )}
+      </div>
       </div>
 
       {/* MODALS */}

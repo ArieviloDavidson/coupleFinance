@@ -1,6 +1,12 @@
 /* src/components/ListCards/ListCards.css */
+/* Herda container da shared.css */
 .cards-wrapper {
-  padding: 20px;
+}
+
+/* Herda page-container da shared.css */
+.cards-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .cards-grid {
@@ -174,16 +180,21 @@
   background-color: #ddd;
 }
 
+/* Herda header da shared.css */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 20px;
   /* Espaço entre título e botão */
-  margin-bottom: 20px;
 }
 
-.header-actions h2 {
-  margin: 0;
+/* Títulos */
+.header-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
 }
 
 .header-buttons {
