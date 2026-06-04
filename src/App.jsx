@@ -69,7 +69,7 @@ function App() {
         </div>
 
         <nav className="nav-menu">
-          <NavLink to="/home" className="nav-link">VIsão Geral</NavLink>
+          <NavLink to="/home" className="nav-link">Visão Geral</NavLink>
           <NavLink to="/transactions" className="nav-link">Transações</NavLink>
           <NavLink to="/cards" className="nav-link">Meus Cartões</NavLink>
           <NavLink to="/wallets" className="nav-link">Carteiras</NavLink>
