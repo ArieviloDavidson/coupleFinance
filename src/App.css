@@ -35,7 +35,7 @@
   align-items: center;
 }
 
-.nav-menu button {
+.nav-menu .nav-link {
   background: transparent;
   border: none;
   color: #a0a0a0;
@@ -47,14 +47,15 @@
   display: flex;
   align-items: center;
   border-bottom: 3px solid transparent;
+  text-decoration: none;
 }
 
-.nav-menu button:hover {
+.nav-menu .nav-link:hover {
   background-color: #16213e;
   color: #fff;
 }
 
-.nav-menu button.active {
+.nav-menu .nav-link.active {
   border-bottom: 3px solid #e94560; /* Cor de destaque */
   color: #fff;
   font-weight: bold;
@@ -66,13 +67,6 @@
   flex: 1;
   width: 100%;
   overflow-y: auto;
-}
-
-.welcome-box {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 /* Perfil do Usuário no Header */

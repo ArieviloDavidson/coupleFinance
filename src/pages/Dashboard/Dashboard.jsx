@@ -103,7 +103,7 @@ const Dashboard = ({ onNavigate }) => {
       <div className="dashboard-header header-container">
         <div className="header-left">
           <h1 className='page-title'>Visão Geral</h1>
-          <p className='page-subtitle'>Bem-vindos ao Couple Finance</p>
+          <p className='page-subtitle'>Bem-vindos ao My Finance</p>
 
           <button
             className="btn-view-entries btn"

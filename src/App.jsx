@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, NavLink} from 'react-router-dom';
 import './App.css';
 
 // Pages
@@ -68,54 +69,13 @@ function App() {
         </div>
 
         <nav className="nav-menu">
-          <button 
-            className={activeView === 'dashboard' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('dashboard'); }}
-          >
-            Visão Geral
-          </button>
-          
-          <button 
-            className={activeView === 'transactions' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('transactions'); }}
-          >
-            Transações
-          </button>
-
-          <button 
-            className={activeView === 'cards' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('cards'); }}
-          >
-            Meus Cartões
-          </button>
-
-          <button 
-            className={activeView === 'wallets' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('wallets'); }}
-          >
-            Carteiras
-          </button>
-
-          <button 
-            className={activeView === 'budgets' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('budgets'); }}
-          >
-            Metas / Orçamento
-          </button>
-
-          <button 
-            className={activeView === 'reminders' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('reminders'); }}
-          >
-            Lembretes
-          </button>
-
-          <button 
-            className={activeView === 'investments' ? 'active' : ''} 
-            onClick={() => { setNavigateData(null); setActiveView('investments'); }}
-          >
-            Investimentos
-          </button>
+          <NavLink to="/home" className="nav-link">VIsão Geral</NavLink>
+          <NavLink to="/transactions" className="nav-link">Transações</NavLink>
+          <NavLink to="/cards" className="nav-link">Meus Cartões</NavLink>
+          <NavLink to="/wallets" className="nav-link">Carteiras</NavLink>
+          <NavLink to="/budgets" className="nav-link">Metas / Orçamento</NavLink>
+          <NavLink to="/reminders" className="nav-link">Lembretes</NavLink>
+          <NavLink to="/investments" className="nav-link">Investimentos</NavLink>
         </nav>
 
         {/* ÁREA DO PERFIL E LOGOUT */}
@@ -134,13 +94,21 @@ function App() {
 
       {/* ÁREA DE CONTEÚDO */}
       <main className="main-content">
-        {activeView === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
-        {activeView === 'transactions' && <Transactions />}
-        {activeView === 'cards' && <ListCards initialCardFilter={navigateData?.cardFilter || ''} />}
-        {activeView === 'wallets' && <Wallets />}
-        {activeView === 'budgets' && <Budgets />}
-        {activeView === 'reminders' && <Reminders />}
-        {activeView === 'investments' && <Investments />}
+        <Routes>
+          {/* Rota raiz redireciona para /home */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          
+          {/* Rotas de cada página */}
+          <Route path="/home" element={<Dashboard />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/cards" element={<ListCards />} />
+          <Route path="/wallets" element={<Wallets />} />
+          <Route path="/budgets" element={<Budgets />} />
+          <Route path="/reminders" element={<Reminders />} />
+          <Route path="/investments" element={<Investments />} />
+          {/* Rota 404 para URLs não encontradas */}
+          <Route path="*" element={<div>Página não encontrada</div>} />
+        </Routes>
       </main>
     </div>
   )
