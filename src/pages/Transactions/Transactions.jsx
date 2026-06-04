@@ -11,7 +11,29 @@ import '../../shared.css';
 
 import { TRANSACTION_TYPES } from '../../utils/constants';
 
+const getMonthKey = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const formatMonthLabel = (monthKey) => {
+  if (!monthKey) return '';
+  const [year, month] = monthKey.split('-');
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `${monthNames[Number(month) - 1]} / ${year}`;
+};
+
 const Transactions = () => {
+  const changeMonth = (direction) => {
+    if (!filterDate) return;
+    const [year, month] = filterDate.split('-').map(Number);
+    const date = new Date(year, month - 1 + direction, 1);
+    setFilterDate(getMonthKey(date));
+  };
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -127,12 +149,11 @@ const Transactions = () => {
             className="filter-input"
             style={{ minWidth: '150px' }} // Ajuste visual básico
           />
-          <input
-            type="month"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="filter-input"
-          />
+          <div className="month-nav">
+            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+            <span className="month-label">{formatMonthLabel(filterDate)}</span>
+            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+          </div>
 
           <select
             value={filterWallet}

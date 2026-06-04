@@ -10,7 +10,29 @@ import '../../shared.css';
 
 import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 
+const getMonthKey = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const formatMonthLabel = (monthKey) => {
+  if (!monthKey) return '';
+  const [year, month] = monthKey.split('-');
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `${monthNames[Number(month) - 1]} / ${year}`;
+};
+
 const Budgets = () => {
+  const changeMonth = (direction) => {
+    if (!currentMonth) return;
+    const [year, month] = currentMonth.split('-').map(Number);
+    const date = new Date(year, month - 1 + direction, 1);
+    setCurrentMonth(getMonthKey(date));
+  };
+
   const [loading, setLoading] = useState(true);
 
   // Filtros
@@ -173,12 +195,11 @@ const Budgets = () => {
         </div>
 
         <div className="budgets-filters">
-          <input
-            type="month"
-            value={currentMonth}
-            onChange={e => setCurrentMonth(e.target.value)}
-            className="filter-input"
-          />
+          <div className="month-nav">
+            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+            <span className="month-label">{formatMonthLabel(currentMonth)}</span>
+            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+          </div>
           <select
             value={selectedSource}
             onChange={e => setSelectedSource(e.target.value)}

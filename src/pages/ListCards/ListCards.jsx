@@ -16,11 +16,33 @@ import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
 import PayOffModal from '../../components/PayOffModal/PayOffModal';
 
+const getMonthKey = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const formatMonthLabel = (monthKey) => {
+  if (!monthKey) return '';
+  const [year, month] = monthKey.split('-');
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `${monthNames[Number(month) - 1]} / ${year}`;
+};
+
 const ListCards = ({ initialCardFilter }) => {
 
   // Filtro de mês/ano
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
   const [selectedCardFilter, setSelectedCardFilter] = useState(''); // ID do cartão selecionado
+
+  const changeMonth = (direction) => {
+    if (!currentMonth) return;
+    const [year, month] = currentMonth.split('-').map(Number);
+    const date = new Date(year, month - 1 + direction, 1);
+    setCurrentMonth(getMonthKey(date));
+  };
 
   const [cards, setCards] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
@@ -206,12 +228,11 @@ const ListCards = ({ initialCardFilter }) => {
             ))}
           </select>
           {/* NOVO: Filtro de Mês */}
-          <input
-            type="month"
-            value={currentMonth}
-            onChange={e => setCurrentMonth(e.target.value)}
-            className="filter-input"
-          />
+          <div className="month-nav">
+            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+            <span className="month-label">{formatMonthLabel(currentMonth)}</span>
+            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+          </div>
         </div>
       </div>
 

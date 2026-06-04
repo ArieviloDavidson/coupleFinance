@@ -59,39 +59,7 @@
   padding-bottom: 15px;
 }
 
-/* Navegação de mês */
-.month-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8f9fa;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
-
-.month-nav-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #2c3e50;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.month-nav-btn:hover {
-  background-color: #e94560;
-  color: white;
-}
-
-.month-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #2c3e50;
-  min-width: 130px;
-  text-align: center;
-}
+/* Navegação de mês herdada de shared.css */
 
 /* Busca */
 .search-box {

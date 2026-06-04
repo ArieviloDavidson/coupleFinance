@@ -43,7 +43,29 @@ function getInvestmentColor(atual, ideal) {
 // ======================================================
 // COMPONENTE PRINCIPAL
 // ======================================================
+const getMonthKey = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const formatMonthLabel = (monthKey) => {
+  if (!monthKey) return '';
+  const [year, month] = monthKey.split('-');
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `${monthNames[Number(month) - 1]} / ${year}`;
+};
+
 const Investments = () => {
+  const changeMonth = (direction) => {
+    if (!filterDate) return;
+    const [year, month] = filterDate.split('-').map(Number);
+    const date = new Date(year, month - 1 + direction, 1);
+    setFilterDate(getMonthKey(date));
+  };
+
   // --- Estados ---
   const [investmentTypes, setInvestmentTypes] = useState([]);
   const [investments, setInvestments] = useState([]);
@@ -309,12 +331,11 @@ const Investments = () => {
       <div className="investments-movements-section">
         <div className="movements-header">
           <h3>Movimentações</h3>
-          <input
-            type="month"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="filter-input"
-          />
+          <div className="month-nav">
+            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+            <span className="month-label">{formatMonthLabel(filterDate)}</span>
+            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+          </div>
         </div>
 
         <div className="investments-list">
