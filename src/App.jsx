@@ -58,27 +58,13 @@ function App() {
     return <Login />;
   }
 
-  // 4. Se tiver usuário, mostra o App (Sidebar + Conteúdo)
+  // 4. Se tiver usuário, mostra o App (Header + Conteúdo)
   return (
     <div className='app-container'>
-      {/* SIDEBAR */}
-      <aside className="sidebar">
+      {/* HEADER */}
+      <header className="app-header">
         <div className="brand">
-          Couple Finance
-        </div>
-
-        {/* ÁREA DO PERFIL */}
-        <div className="sidebar-profile">
-          {user.photoURL && (
-            <img 
-              src={user.photoURL} 
-              alt="User" 
-              className="sidebar-profile-img"
-            />
-          )}
-          <div className="sidebar-profile-text">
-            Olá, {user.displayName ? user.displayName.split(' ')[0] : 'Usuário'}
-          </div>
+          My Finance
         </div>
 
         <nav className="nav-menu">
@@ -130,19 +116,23 @@ function App() {
           >
             Investimentos
           </button>
+        </nav>
 
-          {/* BOTÃO SAIR */}
+        {/* ÁREA DO PERFIL E LOGOUT */}
+        <div className="header-profile">
+          <span className="header-profile-text">
+            Olá, {user.displayName ? user.displayName.split(' ')[0] : 'Usuário'}
+          </span>
           <button 
             onClick={handleLogout}
-            style={{ marginTop: '20px', backgroundColor: 'rgba(231, 76, 60, 0.2)', color: '#e74c3c', border: '1px solid #e74c3c' }}
+            className="btn-logout"
           >
             Sair
           </button>
+        </div>
+      </header>
 
-        </nav>
-      </aside>
-
-      {/* ÁREA DE CONTEÚDO À DIREITA */}
+      {/* ÁREA DE CONTEÚDO */}
       <main className="main-content">
         {activeView === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
         {activeView === 'transactions' && <Transactions />}
