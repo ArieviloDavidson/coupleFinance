@@ -28,7 +28,9 @@ const Dashboard = ({ onNavigate }) => {
   // 1. Busca Saldo Total (Wallets)
   useEffect(() => {
     const unsubscribe = subscribeWallets((wallets) => {
-      const total = wallets.reduce((acc, w) => acc + Number(w.currentBalance || 0), 0);
+      const total = wallets
+        .filter(w => w.type !== 'vale_alimentacao')
+        .reduce((acc, w) => acc + Number(w.currentBalance || 0), 0);
       setTotalBalance(total);
     });
     return () => unsubscribe();

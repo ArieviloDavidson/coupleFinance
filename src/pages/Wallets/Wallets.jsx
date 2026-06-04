@@ -72,7 +72,9 @@ const Wallets = () => {
     return types[type] || type;
   };
 
-  const totalBalance = wallets.reduce((acc, w) => acc + (w.currentBalance || 0), 0);
+  const totalBalance = wallets
+    .filter(w => w.type !== 'vale_alimentacao')
+    .reduce((acc, w) => acc + (w.currentBalance || 0), 0);
 
   if (loading) return <div className="loading">Carregando carteiras...</div>;
 
