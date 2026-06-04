@@ -6,6 +6,7 @@
 .reminders-container {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 /* Header */
@@ -42,7 +43,6 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
