@@ -11,6 +11,16 @@ import FixedExpensePayModal from '../FixedExpensesPayModal/FixedExpensesPayModal
 import './FixedExpenses.css';
 import '../../shared.css';
 
+// Helper para normalizar e limpar as descrições (remove prefixos e sufixos de parcelas)
+const cleanDescription = (desc) => {
+  if (!desc) return '';
+  return desc
+    .replace(/^Pagamento Cartão:\s*/i, '') // Remove o prefixo de pagamento de cartão
+    .replace(/\s*\(\d+\/\d+\)$/, '')       // Remove o sufixo de parcelas (ex: (1/12))
+    .trim()
+    .toLowerCase();
+};
+
 const FixedExpenses = ({ onNavigate }) => {
   // Estado das despesas fixas
   const [expenses, setExpenses] = useState([]);
@@ -42,23 +52,26 @@ const FixedExpenses = ({ onNavigate }) => {
 
       const paidNames = new Set();
 
-      // 1. Verifica transações normais (pagamento via carteira)
+      // 1. Verifica transações normais (pagamento via carteira ou pagamento de cartão)
       const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
-        if (t.category !== 'Contas') return;
+        if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
         const tMonth = t.dateObj.toISOString().slice(0, 7);
         if (tMonth === currentMonth) {
-          paidNames.add(t.description);
+          paidNames.add(cleanDescription(t.description));
         }
       });
 
       // 2. Verifica compras no cartão (pagamento via cartão de crédito)
       const cardPurchases = await fetchCardsShopping();
       cardPurchases.forEach(p => {
-        if (p.category !== 'Contas') return;
+        if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
         const pMonth = p.dateObj.toISOString().slice(0, 7);
         if (pMonth === currentMonth) {
-          paidNames.add(p.description);
+          // Para compras parceladas ou assinaturas recorrentes no cartão,
+          // só consideramos paga se o status da parcela deste mês for 'pago'.
+          if (p.installments > 1 && p.status !== 'pago') return;
+          paidNames.add(cleanDescription(p.description));
         }
       });
 
@@ -116,7 +129,7 @@ const FixedExpenses = ({ onNavigate }) => {
 
       <div className="fixed-list">
         {expenses.map(item => {
-          const isPaid = paidExpenses.has(item.description);
+          const isPaid = paidExpenses.has(cleanDescription(item.description));
           return (
             <div key={item.id} className={`fixed-item ${isPaid ? 'expense-paid' : ''}`}>
               <div className="fixed-info">
