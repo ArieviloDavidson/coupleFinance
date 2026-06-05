@@ -16,6 +16,16 @@ import DashboardCard from '../../components/DashboardCard/DashboardCard';
 import './Dashboard.css';
 import '../../shared.css';
 
+// Helper para normalizar e limpar as descrições (remove prefixos e sufixos de parcelas)
+const cleanDescription = (desc) => {
+  if (!desc) return '';
+  return desc
+    .replace(/^Pagamento Cartão:\s*/i, '') // Remove o prefixo de pagamento de cartão
+    .replace(/\s*\(\d+\/\d+\)$/, '')       // Remove o sufixo de parcelas (ex: (1/12))
+    .trim()
+    .toLowerCase();
+};
+
 const Dashboard = ({ onNavigate }) => {
   // Estados
   const [totalBalance, setTotalBalance] = useState(0); // Saldo total das carteiras
@@ -62,23 +72,26 @@ const Dashboard = ({ onNavigate }) => {
       const currentMonth = now.toISOString().slice(0, 7);
       const paidNames = new Set();
 
-      // 1. Verifica transações normais (pagamento via carteira)
+      // 1. Verifica transações normais (pagamento via carteira ou pagamento de cartão)
       const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
-        if (t.category !== 'Contas') return;
+        if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
         const tMonth = t.dateObj.toISOString().slice(0, 7);
         if (tMonth === currentMonth) {
-          paidNames.add(t.description);
+          paidNames.add(cleanDescription(t.description));
         }
       });
 
       // 2. Verifica compras no cartão (pagamento via cartão de crédito)
       const cardPurchases = await fetchCardsShopping();
       cardPurchases.forEach(p => {
-        if (p.category !== 'Contas') return;
+        if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
         const pMonth = p.dateObj.toISOString().slice(0, 7);
         if (pMonth === currentMonth) {
-          paidNames.add(p.description);
+          // Para compras parceladas ou assinaturas recorrentes no cartão,
+          // só consideramos paga se o status da parcela deste mês for 'pago'.
+          if (p.installments > 1 && p.status !== 'pago') return;
+          paidNames.add(cleanDescription(p.description));
         }
       });
 
@@ -93,7 +106,7 @@ const Dashboard = ({ onNavigate }) => {
 
   // Cálculo da Previsão Mensal: Saldo - despesas fixas ainda não pagas no mês
   const unpaidTotal = expenses
-    .filter(item => !paidExpenses.has(item.description))
+    .filter(item => !paidExpenses.has(cleanDescription(item.description)))
     .reduce((acc, item) => acc + Number(item.value || 0), 0);
   const monthlyForecast = totalBalance - unpaidTotal;
 
