@@ -84,16 +84,26 @@ const ListCards = ({ initialCardFilter }) => {
     }
   }, [initialCardFilter]);
 
-  const filteredShoppingList = shoppingList.filter(item => {
-    // Filtro de Mês (YYYY-MM)
-    const itemYearMonth = item.dateObj.toISOString().slice(0, 7);
-    const matchMonth = !currentMonth || itemYearMonth === currentMonth;
+  const filteredShoppingList = shoppingList
+    .filter(item => {
+      // Filtro de Mês (YYYY-MM)
+      const itemYearMonth = item.dateObj.toISOString().slice(0, 7);
+      const matchMonth = !currentMonth || itemYearMonth === currentMonth;
 
-    // Filtro de Cartão
-    const matchCard = !selectedCardFilter || item.cardId === selectedCardFilter;
+      // Filtro de Cartão
+      const matchCard = !selectedCardFilter || item.cardId === selectedCardFilter;
 
-    return matchMonth && matchCard;
-  });
+      return matchMonth && matchCard;
+    })
+    .sort((a, b) => {
+      // 1º critério: não pagos antes dos pagos
+      const aPaid = a.status === 'pago' ? 1 : 0;
+      const bPaid = b.status === 'pago' ? 1 : 0;
+      if (aPaid !== bPaid) return aPaid - bPaid;
+
+      // 2º critério: data de compra mais recente primeiro
+      return b.dateObj - a.dateObj;
+    });
 
   // --- HELPER: Calcular Limite Disponível ---
   const getCardMetrics = (cardId, limitTotal) => {
