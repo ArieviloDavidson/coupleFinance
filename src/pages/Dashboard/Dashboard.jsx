@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { subscribeWallets } from '../../api/wallets';
 import { subscribeFixedExpenses } from '../../api/fixedExpenses';
 import { subscribeFixedEntries } from '../../api/fixedEntries';
-import { fetchExpenseTransactions } from '../../api/transactions';
-import { fetchCardsShopping } from '../../api/cards';
+import { subscribeTransactions } from '../../api/transactions';
+import { subscribeCardsShopping } from '../../api/cards';
 // COMPONENTS
 import FixedExpenses from '../../components/FixedExpenses/FixedExpenses';
 import ChartExpensesCategory from '../../components/Charts/ChartExpensesCategory';
@@ -65,41 +65,52 @@ const Dashboard = ({ onNavigate }) => {
     return () => unsubscribe();
   }, []);
 
-  // 4. Busca despesas pagas no mês atual (transações + compras no cartão)
+  // 4. Escuta transações em tempo real para detectar despesas pagas
+  const [paidTransactions, setPaidTransactions] = useState([]);
   useEffect(() => {
-    const fetchPaid = async () => {
-      const now = new Date();
-      const currentMonth = now.toISOString().slice(0, 7);
-      const paidNames = new Set();
-
-      // 1. Verifica transações normais (pagamento via carteira ou pagamento de cartão)
-      const transactions = await fetchExpenseTransactions();
-      transactions.forEach(t => {
-        if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
-        const tMonth = t.dateObj.toISOString().slice(0, 7);
-        if (tMonth === currentMonth) {
-          paidNames.add(cleanDescription(t.description));
-        }
-      });
-
-      // 2. Verifica compras no cartão (pagamento via cartão de crédito)
-      const cardPurchases = await fetchCardsShopping();
-      cardPurchases.forEach(p => {
-        if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-        const pMonth = p.dateObj.toISOString().slice(0, 7);
-        if (pMonth === currentMonth) {
-          // Para compras parceladas ou assinaturas recorrentes no cartão,
-          // só consideramos paga se o status da parcela deste mês for 'pago'.
-          if (p.installments > 1 && p.status !== 'pago') return;
-          paidNames.add(cleanDescription(p.description));
-        }
-      });
-
-      setPaidExpenses(paidNames);
-    };
-
-    fetchPaid();
+    const unsubscribe = subscribeTransactions((transactions) => {
+      setPaidTransactions(transactions);
+    });
+    return () => unsubscribe();
   }, []);
+
+  // 5. Escuta compras no cartão em tempo real para detectar despesas pagas
+  const [paidCardPurchases, setPaidCardPurchases] = useState([]);
+  useEffect(() => {
+    const unsubscribe = subscribeCardsShopping((purchases) => {
+      setPaidCardPurchases(purchases);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 6. Reconstrói o Set de despesas pagas sempre que transações ou compras mudam
+  useEffect(() => {
+    const now = new Date();
+    const currentMonth = now.toISOString().slice(0, 7);
+    const paidNames = new Set();
+
+    // Verifica transações normais (pagamento via carteira ou pagamento de cartão)
+    paidTransactions.forEach(t => {
+      if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+      const tMonth = t.dateObj.toISOString().slice(0, 7);
+      if (tMonth === currentMonth) {
+        paidNames.add(cleanDescription(t.description));
+      }
+    });
+
+    // Verifica compras no cartão (pagamento via cartão de crédito)
+    paidCardPurchases.forEach(p => {
+      if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
+      const pMonth = p.dateObj.toISOString().slice(0, 7);
+      if (pMonth === currentMonth) {
+        // Para compras parceladas, só considera paga se o status for 'pago'
+        if (p.installments > 1 && p.status !== 'pago') return;
+        paidNames.add(cleanDescription(p.description));
+      }
+    });
+
+    setPaidExpenses(paidNames);
+  }, [paidTransactions, paidCardPurchases]);
 
   // Cálculo da Previsão (Sobra)
   const predictionValue = totalFixedEntries - totalFixedExpenses;

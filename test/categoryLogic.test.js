@@ -176,54 +176,94 @@ describe('ChartExpensesCategory — agrupamento para gráfico de pizza', () => {
 });
 
 // -----------------------------------------------
-// FixedExpenses.jsx (L45-55) + Dashboard.jsx (L63-69)
-// Filtra transações com category === 'Contas' para detectar despesas pagas.
-// Código real:
-//   transactions.forEach(t => {
-//     if (t.category !== 'Contas') return;
+// Dashboard.jsx (useEffect #6) — lógica corrigida com subscribeTransactions
+// Filtra transações com category 'Contas', 'Assinaturas' ou 'Pagamento de Cartão'
+// para detectar despesas pagas no mês atual.
+// Código real (pós-fix):
+//   paidTransactions.forEach(t => {
+//     if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
 //     const tMonth = t.dateObj.toISOString().slice(0, 7);
-//     if (tMonth === currentMonth) paidNames.add(t.description);
+//     if (tMonth === currentMonth) paidNames.add(cleanDescription(t.description));
 //   });
 // -----------------------------------------------
-describe('FixedExpenses / Dashboard — filtro de despesas pagas por "Contas"', () => {
-  it('deve identificar apenas transações com category "Contas" no mês correto', () => {
+describe('Dashboard — filtro de despesas pagas (lógica corrigida)', () => {
+  it('deve identificar transações "Contas" no mês correto', () => {
     const currentMonth = '2025-06';
 
     const transacoes = [
       { category: 'Contas', description: 'Internet', dateObj: new Date('2025-06-05') },
       { category: 'Contas', description: 'Luz', dateObj: new Date('2025-06-10') },
       { category: 'Alimentação', description: 'Mercado', dateObj: new Date('2025-06-15') },
-      { category: 'Contas', description: 'Aluguel', dateObj: new Date('2025-05-05') },
+      { category: 'Contas', description: 'Aluguel', dateObj: new Date('2025-05-05') }, // mês diferente
     ];
 
     const paidNames = new Set();
-
     transacoes.forEach(t => {
-      if (t.category !== 'Contas') return;
+      if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+      const tMonth = t.dateObj.toISOString().slice(0, 7);
+      if (tMonth === currentMonth) paidNames.add(t.description.toLowerCase());
+    });
+
+    expect(paidNames.has('internet')).toBe(true);
+    expect(paidNames.has('luz')).toBe(true);
+    expect(paidNames.has('mercado')).toBe(false);  // categoria diferente
+    expect(paidNames.has('aluguel')).toBe(false);  // mês diferente
+  });
+
+  it('deve identificar transações "Assinaturas" (categoria nova incluída no fix)', () => {
+    const currentMonth = '2025-06';
+
+    const transacoes = [
+      { category: 'Assinaturas', description: 'Netflix', dateObj: new Date('2025-06-01') },
+      { category: 'Assinaturas', description: 'Spotify', dateObj: new Date('2025-06-01') },
+      { category: 'Alimentação', description: 'iFood', dateObj: new Date('2025-06-10') },
+    ];
+
+    const paidNames = new Set();
+    transacoes.forEach(t => {
+      if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+      const tMonth = t.dateObj.toISOString().slice(0, 7);
+      if (tMonth === currentMonth) paidNames.add(t.description.toLowerCase());
+    });
+
+    expect(paidNames.has('netflix')).toBe(true);
+    expect(paidNames.has('spotify')).toBe(true);
+    expect(paidNames.has('ifood')).toBe(false);
+  });
+
+  it('deve identificar "Pagamento de Cartão" como despesa paga', () => {
+    const currentMonth = '2025-06';
+
+    const transacoes = [
+      { category: 'Pagamento de Cartão', description: 'Pagamento Cartão: Energia', dateObj: new Date('2025-06-05') },
+    ];
+
+    const paidNames = new Set();
+    transacoes.forEach(t => {
+      if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
       const tMonth = t.dateObj.toISOString().slice(0, 7);
       if (tMonth === currentMonth) {
-        paidNames.add(t.description);
+        // Simula cleanDescription
+        const cleaned = t.description.replace(/^Pagamento Cartão:\s*/i, '').trim().toLowerCase();
+        paidNames.add(cleaned);
       }
     });
 
-    expect(paidNames.has('Internet')).toBe(true);
-    expect(paidNames.has('Luz')).toBe(true);
-    expect(paidNames.has('Mercado')).toBe(false);   // categoria diferente
-    expect(paidNames.has('Aluguel')).toBe(false);    // mês diferente
+    expect(paidNames.has('energia')).toBe(true);
   });
 
-  // Dashboard.jsx (L81-84) — calcula total de despesas não pagas
-  it('deve calcular o total de despesas fixas não pagas', () => {
+  // Dashboard.jsx — calcula total de despesas não pagas
+  it('deve calcular o total de despesas fixas não pagas corretamente', () => {
     const expenses = [
       { description: 'Internet', value: 100 },
       { description: 'Luz', value: 150 },
       { description: 'Aluguel', value: 1200 },
     ];
 
-    const paidExpenses = new Set(['Internet']);
+    const paidExpenses = new Set(['internet']); // cleanDescription normaliza para lowercase
 
     const unpaidTotal = expenses
-      .filter(item => !paidExpenses.has(item.description))
+      .filter(item => !paidExpenses.has(item.description.toLowerCase()))
       .reduce((acc, item) => acc + Number(item.value || 0), 0);
 
     expect(unpaidTotal).toBe(1350);
