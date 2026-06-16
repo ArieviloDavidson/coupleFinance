@@ -16,7 +16,7 @@
     padding: 20px;
     border-radius: 8px;
     width: 90%;
-    max-width: 350px;
+    max-width: 400px;
 }
 
 .payoff-actions {
@@ -42,4 +42,70 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+}
+
+/* --- Modo Lote --- */
+.payoff-batch-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 8px 0 6px;
+}
+
+.payoff-items-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 6px 0;
+    margin-bottom: 12px;
+}
+
+.payoff-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.payoff-item-row:last-child {
+    border-bottom: none;
+}
+
+.payoff-item-desc {
+    color: #333;
+    flex: 1;
+    margin-right: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.payoff-item-value {
+    color: #2c3e50;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.payoff-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background-color: #f0faf4;
+    border-radius: 6px;
+    border: 1px solid #c8e6c9;
+}
+
+.payoff-total-row span {
+    font-size: 0.95rem;
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.payoff-total-row strong {
+    font-size: 1.1rem;
+    color: #27ae60;
 }

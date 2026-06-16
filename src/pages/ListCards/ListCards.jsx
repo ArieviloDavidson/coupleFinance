@@ -7,6 +7,7 @@ import {
   addCardPurchase,
   removeCardPurchase,
   payCardPurchase,
+  payMultipleCardPurchases,
   updateCardLimit
 } from '../../api/cards';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
@@ -57,6 +58,12 @@ const ListCards = ({ initialCardFilter }) => {
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [newLimit, setNewLimit] = useState('');
+
+  // --- MODO DE SELEÇÃO EM LOTE ---
+  const [batchSelectMode, setBatchSelectMode] = useState(false);
+  const [selectedPurchases, setSelectedPurchases] = useState(new Set());
+  const [lockedCardId, setLockedCardId] = useState(null);
+  const [batchPurchaseItems, setBatchPurchaseItems] = useState(null); // Array para o modal
 
   // 1. Busca Cartões e Compras em paralelo (COM CORREÇÃO DE DATA)
   useEffect(() => {
@@ -175,6 +182,7 @@ const ListCards = ({ initialCardFilter }) => {
     return card ? card.name : 'Cartão Excluído';
   };
 
+  // --- PAGAMENTO INDIVIDUAL ---
   const processPayment = async (purchase, walletId, walletName) => {
     try {
       await payCardPurchase(purchase, walletId, walletName);
@@ -187,7 +195,76 @@ const ListCards = ({ initialCardFilter }) => {
 
   const openPayModal = (item) => {
     setSelectedPurchaseToPay(item);
+    setBatchPurchaseItems(null);
     setPayOffModalOpen(true);
+  };
+
+  // --- PAGAMENTO EM LOTE ---
+  const toggleBatchSelectMode = () => {
+    if (batchSelectMode) {
+      // Desativando: limpa seleção
+      setSelectedPurchases(new Set());
+      setLockedCardId(null);
+    }
+    setBatchSelectMode(!batchSelectMode);
+  };
+
+  const togglePurchaseSelection = (item) => {
+    const newSelected = new Set(selectedPurchases);
+
+    if (newSelected.has(item.id)) {
+      // Desmarcando
+      newSelected.delete(item.id);
+
+      // Se ficou vazio, destrava o cartão
+      if (newSelected.size === 0) {
+        setLockedCardId(null);
+      }
+    } else {
+      // Marcando
+      if (newSelected.size === 0) {
+        // Primeira seleção: trava o cartão
+        setLockedCardId(item.cardId);
+      }
+      newSelected.add(item.id);
+    }
+
+    setSelectedPurchases(newSelected);
+  };
+
+  const getSelectedTotal = () => {
+    return filteredShoppingList
+      .filter(item => selectedPurchases.has(item.id))
+      .reduce((sum, item) => sum + Number(item.totalValue), 0);
+  };
+
+  const openBatchPayModal = () => {
+    const items = filteredShoppingList.filter(item => selectedPurchases.has(item.id));
+    setBatchPurchaseItems(items);
+    setSelectedPurchaseToPay(null);
+    setPayOffModalOpen(true);
+  };
+
+  const processBatchPayment = async (purchases, walletId, walletName) => {
+    try {
+      await payMultipleCardPurchases(purchases, walletId, walletName);
+      alert(`${purchases.length} pagamento(s) registrado(s)! Limite liberado e saldo descontado.`);
+      // Limpa o modo de seleção
+      setSelectedPurchases(new Set());
+      setLockedCardId(null);
+      setBatchSelectMode(false);
+    } catch (error) {
+      console.error("Erro no pagamento em lote:", error);
+      alert("Erro ao processar pagamentos.");
+    }
+  };
+
+  const handlePayOffConfirm = (purchaseOrPurchases, walletId, walletName) => {
+    if (Array.isArray(purchaseOrPurchases)) {
+      processBatchPayment(purchaseOrPurchases, walletId, walletName);
+    } else {
+      processPayment(purchaseOrPurchases, walletId, walletName);
+    }
   };
 
   // --- Editar Limite do Cartão ---
@@ -209,6 +286,9 @@ const ListCards = ({ initialCardFilter }) => {
   };
 
   if (loading) return <div className="loading">Carregando...</div>;
+
+  // Conta quantas compras não-pagas existem para mostrar/esconder botão de seleção
+  const unpaidCount = filteredShoppingList.filter(item => item.status !== 'pago').length;
 
   return (
     <div className="cards-wrapper container">
@@ -312,7 +392,17 @@ const ListCards = ({ initialCardFilter }) => {
 
       {/* LISTA DE COMPRAS */}
       <div className="shopping-history-section">
-        <h3>Histórico de Compras (Crédito) {currentMonth}</h3>
+        <div className="shopping-history-header">
+          <h3>Histórico de Compras (Crédito) {currentMonth}</h3>
+          {unpaidCount > 1 && (
+            <button
+              className={`batch-select-btn ${batchSelectMode ? 'active' : ''}`}
+              onClick={toggleBatchSelectMode}
+            >
+              {batchSelectMode ? '✕ Cancelar' : '☐ Selecionar'}
+            </button>
+          )}
+        </div>
 
         {filteredShoppingList.length === 0 ? (
           <p className="no-data">Nenhuma compra registrada nos cartões.</p>
@@ -320,9 +410,23 @@ const ListCards = ({ initialCardFilter }) => {
           <div className="shopping-list">
             {filteredShoppingList.map(item => {
               const isPaid = item.status === 'pago';
+              const isSelected = selectedPurchases.has(item.id);
+              const isDisabledCard = batchSelectMode && lockedCardId && item.cardId !== lockedCardId && !isPaid;
 
               return (
-                <div key={item.id} className={`shopping-item ${isPaid ? 'paid-item' : ''}`}>
+                <div
+                  key={item.id}
+                  className={`shopping-item ${isPaid ? 'paid-item' : ''} ${isSelected ? 'selected' : ''} ${isDisabledCard ? 'disabled-card' : ''}`}
+                  onClick={batchSelectMode && !isPaid && !isDisabledCard ? () => togglePurchaseSelection(item) : undefined}
+                  style={batchSelectMode && !isPaid && !isDisabledCard ? { cursor: 'pointer' } : {}}
+                >
+                  {/* Checkbox no modo seleção */}
+                  {batchSelectMode && !isPaid && (
+                    <div className={`shopping-item-checkbox ${isSelected ? 'checked' : ''} ${isDisabledCard ? 'disabled' : ''}`}>
+                      {isSelected && <span>✓</span>}
+                    </div>
+                  )}
+
                   <div className="shopping-info">
                     <span className="shopping-date">
                       {item.dateObj.toLocaleDateString('pt-BR')}
@@ -338,7 +442,7 @@ const ListCards = ({ initialCardFilter }) => {
                       {Number(item.totalValue).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </strong>
 
-                    {!isPaid && (
+                    {!isPaid && !batchSelectMode && (
                       <button
                         className="btn-pay-shopping"
                         onClick={() => openPayModal(item)}
@@ -348,12 +452,14 @@ const ListCards = ({ initialCardFilter }) => {
                       </button>
                     )}
 
-                    <button
-                      className="btn-delete-shopping"
-                      onClick={() => handleDeleteShopping(item.id, item.description)}
-                    >
-                      &times;
-                    </button>
+                    {!batchSelectMode && (
+                      <button
+                        className="btn-delete-shopping"
+                        onClick={() => handleDeleteShopping(item.id, item.description)}
+                      >
+                        &times;
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -362,6 +468,21 @@ const ListCards = ({ initialCardFilter }) => {
         )}
       </div>
       </div>
+
+      {/* BARRA FLUTUANTE DE AÇÕES EM LOTE */}
+      {batchSelectMode && selectedPurchases.size > 0 && (
+        <div className="batch-action-bar">
+          <div className="batch-action-info">
+            <span className="batch-count">{selectedPurchases.size} compra(s) selecionada(s)</span>
+            <span className="batch-total">
+              Total: {getSelectedTotal().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+          </div>
+          <button className="batch-pay-btn" onClick={openBatchPayModal}>
+            Pagar {selectedPurchases.size} Compra(s)
+          </button>
+        </div>
+      )}
 
       {/* MODALS */}
       <CardForm
@@ -376,9 +497,14 @@ const ListCards = ({ initialCardFilter }) => {
       />
       <PayOffModal
         isOpen={payOffModalOpen}
-        onClose={() => setPayOffModalOpen(false)}
-        onConfirm={processPayment}
+        onClose={() => {
+          setPayOffModalOpen(false);
+          setBatchPurchaseItems(null);
+          setSelectedPurchaseToPay(null);
+        }}
+        onConfirm={handlePayOffConfirm}
         purchaseItem={selectedPurchaseToPay}
+        purchaseItems={batchPurchaseItems}
       />
 
       {/* Modal Editar Limite */}

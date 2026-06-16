@@ -521,3 +521,166 @@
     max-height: none;
   }
 }
+
+/* =============================================
+   MODO DE SELEÇÃO EM LOTE
+   ============================================= */
+
+/* Header da seção com botão de seleção */
+.shopping-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.shopping-history-header h3 {
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* Botão Selecionar / Cancelar */
+.batch-select-btn {
+  background: #f0f2f5;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.batch-select-btn:hover {
+  background: #e4e7ec;
+  border-color: #ccc;
+}
+
+.batch-select-btn.active {
+  background: #fff3e0;
+  border-color: #ffb74d;
+  color: #e65100;
+}
+
+/* Checkbox customizado no item */
+.shopping-item-checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+  color: white;
+  margin-right: 4px;
+}
+
+.shopping-item-checkbox.checked {
+  background-color: #27ae60;
+  border-color: #27ae60;
+}
+
+.shopping-item-checkbox.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Item selecionado */
+.shopping-item.selected {
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  box-shadow: 0 0 0 1px #a5d6a7;
+}
+
+/* Itens de outro cartão (bloqueados) */
+.shopping-item.disabled-card {
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* =============================================
+   BARRA FLUTUANTE DE AÇÕES EM LOTE
+   ============================================= */
+.batch-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #2c3e50;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 30px;
+  z-index: 999;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideUpBar 0.25s ease;
+}
+
+@keyframes slideUpBar {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.batch-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.batch-count {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.batch-total {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.batch-pay-btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.batch-pay-btn:hover {
+  background: #219a52;
+}
+
+/* Responsivo para barra flutuante */
+@media (max-width: 600px) {
+  .batch-action-bar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .batch-pay-btn {
+    width: 100%;
+  }
+
+  .shopping-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

@@ -201,3 +201,44 @@ export async function payCardPurchase(purchase, walletId, walletName) {
 
   await batch.commit();
 }
+
+/**
+ * Processa o pagamento de MÚLTIPLAS compras de cartão em lote (operação atômica).
+ * Marca todas como pagas, desconta o total agregado da carteira e cria transações individuais.
+ * @param {Array} purchases - Array de objetos de compra (id, description, totalValue)
+ * @param {string} walletId - ID da carteira usada para pagar
+ * @param {string} walletName - Nome da carteira
+ */
+export async function payMultipleCardPurchases(purchases, walletId, walletName) {
+  const batch = writeBatch(db);
+
+  // Calcula o total agregado de todas as compras
+  const aggregatedTotal = purchases.reduce((sum, p) => sum + Number(p.totalValue), 0);
+
+  // 1. Marca cada compra como 'pago'
+  for (const purchase of purchases) {
+    const purchaseRef = doc(db, COLLECTIONS.CARDS_SHOPPING, purchase.id);
+    batch.update(purchaseRef, { status: 'pago' });
+  }
+
+  // 2. Desconta o total agregado da Wallet (uma única operação)
+  const walletRef = doc(db, COLLECTIONS.WALLETS, walletId);
+  batch.update(walletRef, { currentBalance: increment(-aggregatedTotal) });
+
+  // 3. Cria um registro histórico por compra (rastreabilidade individual)
+  for (const purchase of purchases) {
+    const newTransactionRef = doc(collection(db, COLLECTIONS.TRANSACTIONS));
+    batch.set(newTransactionRef, {
+      description: `Pagamento Cartão: ${purchase.description}`,
+      value: Number(purchase.totalValue),
+      type: 'saida',
+      category: 'Pagamento de Cartão',
+      date: new Date(),
+      walletId: walletId,
+      walletName: walletName,
+      paymentMethod: 'payment_bill'
+    });
+  }
+
+  await batch.commit();
+}
