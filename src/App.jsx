@@ -65,7 +65,7 @@ function App() {
       {/* HEADER */}
       <header className="app-header">
         <div className="brand">
-          My Finance
+          Finance App
         </div>
 
         <nav className="nav-menu">
