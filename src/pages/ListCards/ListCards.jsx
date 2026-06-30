@@ -322,16 +322,7 @@ const ListCards = ({ initialCardFilter }) => {
               </option>
             ))}
           </select>
-          {/* NOVO: Filtro de Status */}
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="filter-input"
-          >
-            <option value="all">Todas as Compras</option>
-            <option value="aberto">Não Pagas</option>
-            <option value="pago">Pagas</option>
-          </select>
+
           {/* NOVO: Filtro de Mês */}
           <div className="month-nav">
             <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
@@ -407,8 +398,35 @@ const ListCards = ({ initialCardFilter }) => {
 
       {/* LISTA DE COMPRAS */}
       <div className="shopping-history-section">
-        <div className="shopping-history-header">
-          <h3>Histórico de Compras (Crédito) {currentMonth}</h3>
+        <div className="shopping-history-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+            <h3 style={{ margin: 0 }}>Histórico de Compras (Crédito)</h3>
+            
+            <div className="status-toggle" style={{ display: 'flex', gap: '5px', backgroundColor: '#f0f2f5', padding: '4px', borderRadius: '8px' }}>
+              <button 
+                className={`btn-toggle ${statusFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('all')}
+                style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', cursor: 'pointer', backgroundColor: statusFilter === 'all' ? '#fff' : 'transparent', fontWeight: statusFilter === 'all' ? '600' : 'normal', boxShadow: statusFilter === 'all' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', color: '#2c3e50', fontSize: '0.85rem' }}
+              >
+                Todas
+              </button>
+              <button 
+                className={`btn-toggle ${statusFilter === 'aberto' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('aberto')}
+                style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', cursor: 'pointer', backgroundColor: statusFilter === 'aberto' ? '#fff' : 'transparent', fontWeight: statusFilter === 'aberto' ? '600' : 'normal', boxShadow: statusFilter === 'aberto' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', color: '#e74c3c', fontSize: '0.85rem' }}
+              >
+                Abertas
+              </button>
+              <button 
+                className={`btn-toggle ${statusFilter === 'pago' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('pago')}
+                style={{ padding: '6px 12px', border: 'none', borderRadius: '6px', cursor: 'pointer', backgroundColor: statusFilter === 'pago' ? '#fff' : 'transparent', fontWeight: statusFilter === 'pago' ? '600' : 'normal', boxShadow: statusFilter === 'pago' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none', color: '#27ae60', fontSize: '0.85rem' }}
+              >
+                Pagas
+              </button>
+            </div>
+          </div>
+
           {unpaidCount > 1 && (
             <button
               className={`batch-select-btn ${batchSelectMode ? 'active' : ''}`}
