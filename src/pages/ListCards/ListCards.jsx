@@ -37,6 +37,7 @@ const ListCards = ({ initialCardFilter }) => {
   // Filtro de mês/ano
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
   const [selectedCardFilter, setSelectedCardFilter] = useState(''); // ID do cartão selecionado
+  const [statusFilter, setStatusFilter] = useState('all'); // all, aberto, pago
 
   const changeMonth = (direction) => {
     if (!currentMonth) return;
@@ -93,14 +94,18 @@ const ListCards = ({ initialCardFilter }) => {
 
   const filteredShoppingList = shoppingList
     .filter(item => {
-      // Filtro de Mês (YYYY-MM)
-      const itemYearMonth = item.dateObj.toISOString().slice(0, 7);
+      // Filtro de Mês pela data de VENCIMENTO (YYYY-MM)
+      const filterDate = item.dueDateObj || item.dateObj;
+      const itemYearMonth = filterDate.toISOString().slice(0, 7);
       const matchMonth = !currentMonth || itemYearMonth === currentMonth;
 
       // Filtro de Cartão
       const matchCard = !selectedCardFilter || item.cardId === selectedCardFilter;
 
-      return matchMonth && matchCard;
+      // Filtro de Status
+      const matchStatus = statusFilter === 'all' || item.status === statusFilter;
+
+      return matchMonth && matchCard && matchStatus;
     })
     .sort((a, b) => {
       // 1º critério: não pagos antes dos pagos
@@ -317,6 +322,16 @@ const ListCards = ({ initialCardFilter }) => {
               </option>
             ))}
           </select>
+          {/* NOVO: Filtro de Status */}
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="filter-input"
+          >
+            <option value="all">Todas as Compras</option>
+            <option value="aberto">Não Pagas</option>
+            <option value="pago">Pagas</option>
+          </select>
           {/* NOVO: Filtro de Mês */}
           <div className="month-nav">
             <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
@@ -429,7 +444,9 @@ const ListCards = ({ initialCardFilter }) => {
 
                   <div className="shopping-info">
                     <span className="shopping-date">
-                      {item.dateObj.toLocaleDateString('pt-BR')}
+                      Compra: {(item.purchaseDateObj || item.dateObj).toLocaleDateString('pt-BR')}
+                      {' | '}
+                      Venc: {(item.dueDateObj || item.dateObj).toLocaleDateString('pt-BR')}
                     </span>
                     <strong className="shopping-desc">{item.description}</strong>
                     <span className="shopping-card-badge">{getCardName(item.cardId)}</span>
