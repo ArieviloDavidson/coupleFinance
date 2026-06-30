@@ -32,10 +32,20 @@ export function subscribeCardsShopping(callback) {
         ? docData.date.toDate()
         : (docData.date ? new Date(docData.date) : new Date());
 
+      const purchaseDateObj = docData.purchaseDate?.toDate
+        ? docData.purchaseDate.toDate()
+        : (docData.purchaseDate ? new Date(docData.purchaseDate) : null);
+
+      const dueDateObj = docData.dueDate?.toDate
+        ? docData.dueDate.toDate()
+        : (docData.dueDate ? new Date(docData.dueDate) : null);
+
       return {
         ...docData,
         id: doc.id,
-        dateObj: dateObj
+        dateObj,
+        purchaseDateObj,
+        dueDateObj
       };
     });
 
@@ -65,7 +75,13 @@ export async function fetchCardsShopping() {
     const dateObj = docData.date?.toDate
       ? docData.date.toDate()
       : (docData.date ? new Date(docData.date) : new Date());
-    return { id: d.id, ...docData, dateObj };
+    const purchaseDateObj = docData.purchaseDate?.toDate
+      ? docData.purchaseDate.toDate()
+      : (docData.purchaseDate ? new Date(docData.purchaseDate) : null);
+    const dueDateObj = docData.dueDate?.toDate
+      ? docData.dueDate.toDate()
+      : (docData.dueDate ? new Date(docData.dueDate) : null);
+    return { id: d.id, ...docData, dateObj, purchaseDateObj, dueDateObj };
   });
 }
 
@@ -113,7 +129,6 @@ export async function addCardPurchase(purchaseData) {
   // AUTO-CRIAÇÃO: Despesa Fixa para Contas/Assinaturas parceladas (>1x)
   const autoFixedCategories = ['Contas', 'Assinaturas'];
   if (autoFixedCategories.includes(purchaseData.category) && installments > 1) {
-    // Verifica se já existe despesa fixa com mesmo nome
     const q = query(
       collection(db, COLLECTIONS.FIXED_EXPENSES),
       where('description', '==', purchaseData.description)
@@ -124,7 +139,6 @@ export async function addCardPurchase(purchaseData) {
       throw new Error(`DUPLICATE_FIXED_EXPENSE:${purchaseData.description}`);
     }
 
-    // Cria despesa fixa no MESMO batch (atomicidade)
     const fixedRef = doc(collection(db, COLLECTIONS.FIXED_EXPENSES));
     batch.set(fixedRef, {
       description: purchaseData.description,
@@ -134,23 +148,28 @@ export async function addCardPurchase(purchaseData) {
     });
   }
 
-  // Garante que é um objeto Date
-  const baseDate = new Date(purchaseData.date);
+  // Data de compra original (igual para todas as parcelas)
+  const purchaseDate = new Date(purchaseData.purchaseDate);
+  // Data de vencimento base (1ª parcela), calculada no formulário
+  const baseDueDate = new Date(purchaseData.dueDate);
 
-  // Loop para criar UMA entrada por parcela
   for (let i = 1; i <= installments; i++) {
     const newDocRef = doc(collection(db, COLLECTIONS.CARDS_SHOPPING));
 
-    // Calcula a data desta parcela (Incrementa os meses)
-    const parcelDate = new Date(baseDate);
-    parcelDate.setMonth(parcelDate.getMonth() + (i - 1));
+    // Para cada parcela, incrementa o vencimento em 1 mês
+    const parcelDueDate = new Date(baseDueDate);
+    parcelDueDate.setMonth(parcelDueDate.getMonth() + (i - 1));
 
-    // Define os dados desta parcela
     batch.set(newDocRef, {
-      ...purchaseData,
       description: installments > 1 ? `${purchaseData.description} (${i}/${installments})` : purchaseData.description,
       totalValue: installmentValue,
-      date: parcelDate,
+      cardId: purchaseData.cardId,
+      category: purchaseData.category,
+      installments: installments,
+      installmentValue: installmentValue,
+      purchaseDate: purchaseDate,
+      dueDate: parcelDueDate,
+      date: parcelDueDate,
       installmentIndex: i,
       originalTotal: purchaseData.totalValue,
       status: 'aberto'

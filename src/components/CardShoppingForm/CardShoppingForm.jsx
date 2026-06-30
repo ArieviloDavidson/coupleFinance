@@ -3,7 +3,7 @@ import { fetchCards } from '../../api/cards';
 import './CardShoppingForm.css';
 
 import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
-import { parseDateToNoon } from '../../utils/dateUtils';
+import { parseDateToNoon, calculateDueDate } from '../../utils/dateUtils';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 
 const CardShoppingForm = ({ isOpen, onClose, onSave }) => {
@@ -40,11 +40,22 @@ const CardShoppingForm = ({ isOpen, onClose, onSave }) => {
     const total = Number(formData.totalValue);
     const parcels = Number(formData.installments);
 
+    const selectedCard = cards.find(c => c.id === formData.cardId);
+    if (!selectedCard) {
+      alert("Selecione um cartão.");
+      return;
+    }
+
+    const purchaseDate = parseDateToNoon(formData.date);
+    const dueDate = calculateDueDate(purchaseDate, selectedCard.closingDay, selectedCard.dueDay);
+
     onSave({
       ...formData,
       totalValue: total,
       installments: parcels,
       installmentValue: total / parcels,
+      purchaseDate: purchaseDate,
+      dueDate: dueDate,
       date: parseDateToNoon(formData.date),
       status: 'aberto'
     });
