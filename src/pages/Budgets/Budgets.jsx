@@ -72,8 +72,12 @@ const Budgets = () => {
       setBudgetLimits(limitsObj);
 
       // B. Busca Gastos Reais
-      const spendingObj = {};
-      CATEGORIES[TRANSACTION_TYPES.SAIDA].forEach(cat => spendingObj[cat] = 0);
+      const spendingWalletObj = {};
+      const spendingCardObj = {};
+      CATEGORIES[TRANSACTION_TYPES.SAIDA].forEach(cat => {
+        spendingWalletObj[cat] = 0;
+        spendingCardObj[cat] = 0;
+      });
 
       // --- B1. Transações (Wallets) ---
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
@@ -88,47 +92,25 @@ const Budgets = () => {
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
               const cat = t.category || 'Outros';
-              if (spendingObj[cat] !== undefined) spendingObj[cat] += Number(t.value);
+              if (spendingWalletObj[cat] !== undefined) spendingWalletObj[cat] += Number(t.value);
             }
           }
         });
       }
 
-      // --- B2. Compras (Cartões) - LÓGICA DE VENCIMENTO APLICADA ---
+      // --- B2. Compras (Cartões) ---
       const isCardFilter = sources.cards.some(c => c.id === selectedSource);
       if (selectedSource === 'all' || isCardFilter) {
         const shoppingData = await fetchCardsShopping();
 
         shoppingData.forEach(c => {
-          const cardConfig = sources.cards.find(card => card.id === c.cardId);
+          const filterTargetDate = c.dueDateObj || c.dateObj;
+          const cMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
 
-          // 1. Pega data original da compra/parcela
-          let targetDate = new Date(c.dateObj);
-
-          // 2. Se temos a config do cartão, aplicamos a projeção de vencimento
-          if (cardConfig) {
-            const closingDay = Number(cardConfig.closingDay);
-            const dueDay = Number(cardConfig.dueDay);
-            const purchaseDay = targetDate.getDate();
-
-            // Lógica A: Compra caiu na próxima fatura? (Comprou depois que fechou)
-            if (purchaseDay >= closingDay) {
-              targetDate.setMonth(targetDate.getMonth() + 1);
-            }
-
-            // Lógica B: O vencimento é no mês seguinte ao fechamento?
-            if (dueDay < closingDay) {
-              targetDate.setMonth(targetDate.getMonth() + 1);
-            }
-          }
-
-          const cMonth = targetDate.toLocaleDateString('en-CA').slice(0, 7);
-
-          // Agora comparamos com o mês da fatura calculada, não da compra
           if (cMonth === currentMonth) {
             if (selectedSource === 'all' || c.cardId === selectedSource) {
               const cat = c.category || 'Outros';
-              if (spendingObj[cat] !== undefined) spendingObj[cat] += Number(c.totalValue);
+              if (spendingCardObj[cat] !== undefined) spendingCardObj[cat] += Number(c.totalValue);
             }
           }
         });
@@ -137,15 +119,23 @@ const Budgets = () => {
       // C. Monta array final
       const finalData = CATEGORIES[TRANSACTION_TYPES.SAIDA].map(cat => {
         const limit = limitsObj[cat] || 0;
-        const spent = spendingObj[cat] || 0;
-        const percent = limit > 0 ? (spent / limit) * 100 : 0;
+        const spentWallet = spendingWalletObj[cat] || 0;
+        const spentCard = spendingCardObj[cat] || 0;
+        const spent = spentWallet + spentCard;
+        
+        let percent = 0;
+        if (limit > 0) {
+          percent = (spent / limit) * 100;
+        }
 
         return {
           name: cat,
-          limit: limit,
-          spent: spent,
-          remaining: limit - spent,
-          percent: percent
+          spentWallet,
+          spentCard,
+          spent,
+          limit,
+          percent,
+          remaining: limit - spent
         };
       });
 
@@ -226,7 +216,8 @@ const Budgets = () => {
               <YAxis />
               <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
               <Legend />
-              <Bar dataKey="spent" name="Gasto Real" fill="#8884d8" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="spentWallet" stackId="a" name="Gasto Carteira" fill="#8884d8" radius={[0, 0, 4, 4]} />
+              <Bar dataKey="spentCard" stackId="a" name="Gasto Cartão" fill="#c3b8ff" radius={[4, 4, 0, 0]} />
               <Bar dataKey="limit" name="Meta Definida" fill="#82ca9d" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
