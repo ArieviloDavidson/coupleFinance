@@ -40,8 +40,7 @@
 }
 
 .fixed-list {
-  max-height: 100%;
-  /* Scroll se tiver muitas contas */
+  flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -81,7 +80,7 @@
 .fixed-form {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: auto;
 }
 
 .fixed-form input[type="text"] {
