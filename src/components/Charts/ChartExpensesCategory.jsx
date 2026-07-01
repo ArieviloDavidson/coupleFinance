@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { fetchExpenseTransactions } from '../../api/transactions';
+import { fetchCardsShopping } from '../../api/cards';
 import './ChartExpensesCategory.css';
 
 const COLORS = ['#0088FE', '#00c42aff', '#FFBB28', '#ff5703ff', '#AF19FF', '#f80000ff', '#4e4f63da', '#f13bc4ff'];
@@ -38,15 +39,28 @@ const ChartExpensesCategory = () => {
   useEffect(() => {
     const fetchData = async () => {
       const transactions = await fetchExpenseTransactions();
+      const cardPurchases = await fetchCardsShopping();
 
       const grouped = {};
 
       transactions.forEach(item => {
+        if (item.category === 'Pagamento de Cartão') return;
+
         const itemMonth = item.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         const cat = item.category || 'Outros';
 
         if (itemMonth === filterDate && cat !== 'Transferência') {
           grouped[cat] = (grouped[cat] || 0) + Number(item.value);
+        }
+      });
+
+      cardPurchases.forEach(item => {
+        const filterTargetDate = item.dueDateObj || item.dateObj;
+        const itemMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
+        const cat = item.category || 'Outros';
+
+        if (itemMonth === filterDate) {
+          grouped[cat] = (grouped[cat] || 0) + Number(item.totalValue);
         }
       });
 
