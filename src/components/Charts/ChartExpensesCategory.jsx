@@ -32,7 +32,7 @@ const ChartExpensesCategory = () => {
 
   const [filterDate, setFilterDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().slice(0, 7);
+    return today.toLocaleDateString('en-CA').slice(0, 7);
   });
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const ChartExpensesCategory = () => {
       const grouped = {};
 
       transactions.forEach(item => {
-        const itemMonth = item.dateObj.toISOString().slice(0, 7);
+        const itemMonth = item.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         const cat = item.category || 'Outros';
 
         if (itemMonth === filterDate && cat !== 'Transferência') {

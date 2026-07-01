@@ -36,7 +36,7 @@ const Budgets = () => {
   const [loading, setLoading] = useState(true);
 
   // Filtros
-  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [currentMonth, setCurrentMonth] = useState(new Date().toLocaleDateString('en-CA').slice(0, 7)); // YYYY-MM
   const [selectedSource, setSelectedSource] = useState('all'); // 'all', walletID, ou cardID
 
   // Dados
@@ -83,7 +83,7 @@ const Budgets = () => {
         transactions.forEach(t => {
           if (t.category === 'Pagamento de Cartão') return;
 
-          const tMonth = t.dateObj.toISOString().slice(0, 7);
+          const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
 
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
@@ -122,7 +122,7 @@ const Budgets = () => {
             }
           }
 
-          const cMonth = targetDate.toISOString().slice(0, 7);
+          const cMonth = targetDate.toLocaleDateString('en-CA').slice(0, 7);
 
           // Agora comparamos com o mês da fatura calculada, não da compra
           if (cMonth === currentMonth) {

@@ -44,7 +44,7 @@ const Transactions = () => {
   const [filterDate, setFilterDate] = useState(() => {
     // Inicia com o mês atual (YYYY-MM)
     const today = new Date();
-    return today.toISOString().slice(0, 7);
+    return today.toLocaleDateString('en-CA').slice(0, 7);
   });
 
   // 1. Busca Transações em Tempo Real
@@ -94,7 +94,7 @@ const Transactions = () => {
     transactions.forEach(t => {
       if (!t.walletName) return;
       if (filterDate) {
-        const itemDate = t.dateObj.toISOString().slice(0, 7);
+        const itemDate = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         if (itemDate !== filterDate) return;
       }
       names.add(t.walletName);
@@ -106,7 +106,7 @@ const Transactions = () => {
   const filteredTransactions = transactions.filter(item => {
     // Filtro de Data (Mês/Ano)
     if (filterDate) {
-      const itemDate = item.dateObj.toISOString().slice(0, 7);
+      const itemDate = item.dateObj.toLocaleDateString('en-CA').slice(0, 7);
       if (itemDate !== filterDate) return false;
     }
 

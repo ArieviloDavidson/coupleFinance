@@ -7,7 +7,7 @@ const TransferModal = ({ isOpen, onClose, onConfirm, wallets }) => {
   const [sourceId, setSourceId] = useState('');
   const [destId, setDestId] = useState('');
   const [value, setValue] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   // Reseta o form quando abre
   useEffect(() => {
@@ -15,7 +15,7 @@ const TransferModal = ({ isOpen, onClose, onConfirm, wallets }) => {
       setSourceId('');
       setDestId('');
       setValue('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(new Date().toLocaleDateString('en-CA'));
     }
   }, [isOpen]);
 

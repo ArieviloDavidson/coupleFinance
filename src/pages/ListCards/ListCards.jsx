@@ -35,7 +35,7 @@ const formatMonthLabel = (monthKey) => {
 const ListCards = ({ initialCardFilter }) => {
 
   // Filtro de mês/ano
-  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [currentMonth, setCurrentMonth] = useState(new Date().toLocaleDateString('en-CA').slice(0, 7)); // YYYY-MM
   const [selectedCardFilter, setSelectedCardFilter] = useState(''); // ID do cartão selecionado
   const [statusFilter, setStatusFilter] = useState('all'); // all, aberto, pago
 
@@ -96,7 +96,7 @@ const ListCards = ({ initialCardFilter }) => {
     .filter(item => {
       // Filtro de Mês pela data de VENCIMENTO (YYYY-MM)
       const filterDate = item.dueDateObj || item.dateObj;
-      const itemYearMonth = filterDate.toISOString().slice(0, 7);
+      const itemYearMonth = filterDate.toLocaleDateString('en-CA').slice(0, 7);
       const matchMonth = !currentMonth || itemYearMonth === currentMonth;
 
       // Filtro de Cartão

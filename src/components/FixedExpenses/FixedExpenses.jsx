@@ -48,7 +48,7 @@ const FixedExpenses = ({ onNavigate }) => {
   useEffect(() => {
     const fetchPaidExpenses = async () => {
       const now = new Date();
-      const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
+      const currentMonth = now.toLocaleDateString('en-CA').slice(0, 7); // YYYY-MM
 
       const paidNames = new Set();
 
@@ -56,7 +56,7 @@ const FixedExpenses = ({ onNavigate }) => {
       const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
         if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
-        const tMonth = t.dateObj.toISOString().slice(0, 7);
+        const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         if (tMonth === currentMonth) {
           paidNames.add(cleanDescription(t.description));
         }
@@ -66,7 +66,7 @@ const FixedExpenses = ({ onNavigate }) => {
       const cardPurchases = await fetchCardsShopping();
       cardPurchases.forEach(p => {
         if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-        const pMonth = p.dateObj.toISOString().slice(0, 7);
+        const pMonth = p.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         if (pMonth === currentMonth) {
           // Para compras parceladas ou assinaturas recorrentes no cartão,
           // só consideramos paga se o status da parcela deste mês for 'pago'.

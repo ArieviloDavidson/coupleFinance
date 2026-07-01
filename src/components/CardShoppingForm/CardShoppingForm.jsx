@@ -12,7 +12,7 @@ const CardShoppingForm = ({ isOpen, onClose, onSave }) => {
     description: '',
     totalValue: '',
     installments: 1,
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'),
     cardId: '',
     category: ''
   });
@@ -66,7 +66,7 @@ const CardShoppingForm = ({ isOpen, onClose, onSave }) => {
       description: '',
       totalValue: '',
       installments: 1,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toLocaleDateString('en-CA'),
       cardId: '',
       category: ''
     });

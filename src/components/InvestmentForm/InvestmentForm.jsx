@@ -13,7 +13,7 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
     type: 'entrada', // entrada = Aporte, saida = Resgate
     investmentTypeId: '',
     walletId: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toLocaleDateString('en-CA')
   });
 
   // Busca carteiras ao abrir
@@ -62,7 +62,7 @@ const InvestmentForm = ({ isOpen, onClose, onSave, investmentTypes }) => {
       type: 'entrada',
       investmentTypeId: '',
       walletId: '',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toLocaleDateString('en-CA')
     });
   };
 

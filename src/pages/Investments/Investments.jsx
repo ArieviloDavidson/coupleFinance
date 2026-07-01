@@ -81,7 +81,7 @@ const Investments = () => {
 
   // Filtro de data para lista de movimentações
   const [filterDate, setFilterDate] = useState(() => {
-    return new Date().toISOString().slice(0, 7);
+    return new Date().toLocaleDateString('en-CA').slice(0, 7);
   });
 
   // --- 1. Listener: Tipos de Investimento ---
@@ -150,7 +150,7 @@ const Investments = () => {
   // Movimentações filtradas por mês
   const filteredInvestments = investments.filter(inv => {
     if (filterDate) {
-      const invMonth = inv.dateObj.toISOString().slice(0, 7);
+      const invMonth = inv.dateObj.toLocaleDateString('en-CA').slice(0, 7);
       if (invMonth !== filterDate) return false;
     }
     return true;

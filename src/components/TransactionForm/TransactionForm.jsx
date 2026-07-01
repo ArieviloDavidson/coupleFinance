@@ -15,7 +15,7 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
   const [value, setValue] = useState('');
   const [transDate, setTransDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().slice(0, 10); // YYYY-MM-DD
+    return today.toLocaleDateString('en-CA'); // YYYY-MM-DD
   });
   const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' ou 'card'
   const [selectedSourceId, setSelectedSourceId] = useState('');
@@ -101,7 +101,7 @@ const TransactionForm = ({ isOpen, onClose, onSave }) => {
     setTransType(TRANSACTION_TYPES.SAIDA);
     setCategory('');
     setValue('');
-    setTransDate(new Date().toISOString().slice(0, 10));
+    setTransDate(new Date().toLocaleDateString('en-CA'));
     setPaymentMethod('wallet');
     setSelectedSourceId('');
   };

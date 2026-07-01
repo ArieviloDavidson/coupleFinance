@@ -25,7 +25,7 @@ const ReminderPayModal = ({ isOpen, onClose, reminderItem }) => {
   useEffect(() => {
     if (isOpen && reminderItem) {
       setCurrentValue(reminderItem.value);
-      setTransDate(new Date().toISOString().slice(0, 10)); // Data padrão: hoje
+      setTransDate(new Date().toLocaleDateString('en-CA')); // Data padrão: hoje
       setTransType(TRANSACTION_TYPES.SAIDA);
       setPaymentMethod('wallet');
 

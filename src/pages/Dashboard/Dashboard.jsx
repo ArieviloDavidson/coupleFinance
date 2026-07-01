@@ -86,13 +86,13 @@ const Dashboard = ({ onNavigate }) => {
   // 6. Reconstrói o Set de despesas pagas sempre que transações ou compras mudam
   useEffect(() => {
     const now = new Date();
-    const currentMonth = now.toISOString().slice(0, 7);
+    const currentMonth = now.toLocaleDateString('en-CA').slice(0, 7);
     const paidNames = new Set();
 
     // Verifica transações normais (pagamento via carteira ou pagamento de cartão)
     paidTransactions.forEach(t => {
       if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
-      const tMonth = t.dateObj.toISOString().slice(0, 7);
+      const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
       if (tMonth === currentMonth) {
         paidNames.add(cleanDescription(t.description));
       }
@@ -101,7 +101,7 @@ const Dashboard = ({ onNavigate }) => {
     // Verifica compras no cartão (pagamento via cartão de crédito)
     paidCardPurchases.forEach(p => {
       if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-      const pMonth = p.dateObj.toISOString().slice(0, 7);
+      const pMonth = p.dateObj.toLocaleDateString('en-CA').slice(0, 7);
       if (pMonth === currentMonth) {
         // Para compras parceladas, só considera paga se o status for 'pago'
         if (p.installments > 1 && p.status !== 'pago') return;
