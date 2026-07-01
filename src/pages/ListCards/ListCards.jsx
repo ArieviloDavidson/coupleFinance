@@ -117,6 +117,12 @@ const ListCards = ({ initialCardFilter }) => {
       return b.dateObj - a.dateObj;
     });
 
+  // --- Resumo da Fatura (Mês selecionado) ---
+  const totalFaturaMes = filteredShoppingList.reduce((acc, item) => acc + Number(item.totalValue), 0);
+  const totalFaturaMesPendente = filteredShoppingList
+    .filter(item => item.status !== 'pago')
+    .reduce((acc, item) => acc + Number(item.totalValue), 0);
+
   // --- HELPER: Calcular Limite Disponível ---
   const getCardMetrics = (cardId, limitTotal) => {
     // Filtra compras deste cartão que NÃO estão pagas
@@ -435,6 +441,21 @@ const ListCards = ({ initialCardFilter }) => {
               {batchSelectMode ? '✕ Cancelar' : '☐ Selecionar'}
             </button>
           )}
+        </div>
+
+        <div className="shopping-summary-card">
+          <div className="summary-item">
+            <span className="summary-label">Total da Fatura (Selecionada)</span>
+            <span className="summary-value">
+              {totalFaturaMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Pendente de Pagamento</span>
+            <span className="summary-value pending">
+              {totalFaturaMesPendente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </span>
+          </div>
         </div>
 
         {filteredShoppingList.length === 0 ? (

@@ -683,4 +683,42 @@
     align-items: flex-start;
     gap: 10px;
   }
+}
+
+/* =============================================
+   RESUMO DA FATURA
+   ============================================= */
+.shopping-summary-card {
+  display: flex;
+  gap: 20px;
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  border: 1px solid #e9ecef;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.summary-value.pending {
+  color: #e74c3c;
 }

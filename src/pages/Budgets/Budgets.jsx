@@ -72,9 +72,12 @@ const Budgets = () => {
       setBudgetLimits(limitsObj);
 
       // B. Busca Gastos Reais
+      // Filtra a categoria genérica, pois o cartão entra diretamente
+      const budgetCategories = CATEGORIES[TRANSACTION_TYPES.SAIDA].filter(cat => cat !== 'Pagamento de Cartão');
+
       const spendingWalletObj = {};
       const spendingCardObj = {};
-      CATEGORIES[TRANSACTION_TYPES.SAIDA].forEach(cat => {
+      budgetCategories.forEach(cat => {
         spendingWalletObj[cat] = 0;
         spendingCardObj[cat] = 0;
       });
@@ -117,7 +120,7 @@ const Budgets = () => {
       }
 
       // C. Monta array final
-      const finalData = CATEGORIES[TRANSACTION_TYPES.SAIDA].map(cat => {
+      const finalData = budgetCategories.map(cat => {
         const limit = limitsObj[cat] || 0;
         const spentWallet = spendingWalletObj[cat] || 0;
         const spentCard = spendingCardObj[cat] || 0;
