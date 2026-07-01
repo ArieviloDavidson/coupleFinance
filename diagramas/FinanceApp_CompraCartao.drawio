@@ -1,0 +1,81 @@
+<mxfile host="app.diagrams.net" modified="2024-06-30T00:00:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram name="Fluxo de Compra no Cartão" id="finance-app-card-shopping">
+    <mxGraphModel dx="1050" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Start -->
+        <mxCell id="node_start" value="Início: Usuário seleciona&#10;o cartão de crédito" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Inform Data -->
+        <mxCell id="node_data" value="Informa valor, data,&#10;categoria, descrição e&#10;número de parcelas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Check Closing Date -->
+        <mxCell id="node_closing" value="Sistema verifica a data&#10;de fechamento da fatura" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="320" y="240" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Determine Month -->
+        <mxCell id="node_month" value="Sistema determina o&#10;mês inicial de cobrança" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="320" y="340" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Generate Installments -->
+        <mxCell id="node_installments" value="Parcelas (1 a n) são&#10;geradas automaticamente" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="440" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Update Limit -->
+        <mxCell id="node_limit" value="Limite disponível do&#10;cartão é atualizado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="540" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Dashboard -->
+        <mxCell id="node_dashboard" value="Informações compõem o&#10;orçamento e dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- End -->
+        <mxCell id="node_end" value="Fim do Cadastro" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="740" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- =================== CONNECTIONS =================== -->
+
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge2" edge="1" parent="1" source="node_data" target="node_closing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge3" edge="1" parent="1" source="node_closing" target="node_month">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge4" edge="1" parent="1" source="node_month" target="node_installments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge5" edge="1" parent="1" source="node_installments" target="node_limit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge6" edge="1" parent="1" source="node_limit" target="node_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge7" edge="1" parent="1" source="node_dashboard" target="node_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

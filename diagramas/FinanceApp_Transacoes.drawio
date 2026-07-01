@@ -1,0 +1,107 @@
+<mxfile host="app.diagrams.net" modified="2024-06-30T00:00:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram name="Fluxo de Transações" id="finance-app-transactions">
+    <mxGraphModel dx="1050" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Start -->
+        <mxCell id="node_start" value="Início: Usuário informa&#10;os dados da transação" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Validate -->
+        <mxCell id="node_validate" value="Sistema valida os&#10;campos obrigatórios" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="150" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Decision: Valid? -->
+        <mxCell id="node_decision" value="Campos são&#10;válidos?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="260" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Invalid Error -->
+        <mxCell id="node_error" value="Exibe mensagem&#10;de erro" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="120" y="270" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Firestore Save -->
+        <mxCell id="node_save" value="Transação é registrada&#10;no Firestore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="390" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Update Wallet -->
+        <mxCell id="node_wallet" value="Saldo da carteira&#10;associada é atualizado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="490" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Update UI -->
+        <mxCell id="node_ui" value="Histórico de transações é&#10;atualizado na interface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="590" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Dashboard -->
+        <mxCell id="node_dashboard" value="Indicadores do dashboard&#10;são recalculados" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="690" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- End -->
+        <mxCell id="node_end" value="Fim do Cadastro" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="790" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- =================== CONNECTIONS =================== -->
+
+        <!-- Start to Validate -->
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Validate to Decision -->
+        <mxCell id="edge2" edge="1" parent="1" source="node_validate" target="node_decision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Decision to Error (No) -->
+        <mxCell id="edge3" value="Não" edge="1" parent="1" source="node_decision" target="node_error">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Error to Start (Back) -->
+        <mxCell id="edge_back" edge="1" parent="1" source="node_error" target="node_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="70" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Decision to Save (Yes) -->
+        <mxCell id="edge4" value="Sim" edge="1" parent="1" source="node_decision" target="node_save">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Save to Wallet -->
+        <mxCell id="edge5" edge="1" parent="1" source="node_save" target="node_wallet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Wallet to UI -->
+        <mxCell id="edge6" edge="1" parent="1" source="node_wallet" target="node_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- UI to Dashboard -->
+        <mxCell id="edge7" edge="1" parent="1" source="node_ui" target="node_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Dashboard to End -->
+        <mxCell id="edge8" edge="1" parent="1" source="node_dashboard" target="node_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

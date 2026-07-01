@@ -1,0 +1,91 @@
+<mxfile host="app.diagrams.net" modified="2024-06-30T00:00:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram name="Visão Geral do FinanceApp" id="finance-app-overview">
+    <mxGraphModel dx="1050" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- User -->
+        <mxCell id="node_user" value="Usuário&#10;(Navegador)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="240" width="50" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Vercel Container -->
+        <mxCell id="node_vercel" value="Hospedagem (Vercel)" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="240" y="110" width="300" height="380" as="geometry" />
+        </mxCell>
+
+        <!-- Frontend -->
+        <mxCell id="node_frontend" value="FinanceApp (React.js / Vite)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="node_vercel">
+          <mxGeometry x="40" y="60" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- UI / Components -->
+        <mxCell id="node_ui" value="Camada de Interface&#10;(Páginas, Componentes, Recharts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="node_vercel">
+          <mxGeometry x="40" y="170" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Data Access Layer -->
+        <mxCell id="node_data_layer" value="Camada de Acesso a Dados&#10;(Módulos da API)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="node_vercel">
+          <mxGeometry x="40" y="280" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Firebase Auth -->
+        <mxCell id="node_auth" value="Firebase Authentication&#10;(Login com Google)" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="140" width="180" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Firestore -->
+        <mxCell id="node_db" value="Cloud Firestore&#10;(Persistência de Dados)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="640" y="360" width="140" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="edge_user_app" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_user" target="node_frontend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_user_app" value="Acessa / Interage" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_user_app">
+          <mxGeometry x="-0.1" y="0" relative="1" as="geometry">
+            <mxPoint y="-15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_app_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.07;entryY=0.4;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="node_frontend" target="node_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_app_auth" value="Autentica" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_app_auth">
+          <mxGeometry x="-0.1" y="0" relative="1" as="geometry">
+            <mxPoint y="-15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_app_ui" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="node_vercel" source="node_frontend" target="node_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_app_ui" value="Renderiza" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_app_ui">
+          <mxGeometry x="-0.2" y="0" relative="1" as="geometry">
+            <mxPoint x="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_ui_data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="node_vercel" source="node_ui" target="node_data_layer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_ui_data" value="Requisita" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_ui_data">
+          <mxGeometry x="-0.2" y="0" relative="1" as="geometry">
+            <mxPoint x="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_data_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="node_data_layer" target="node_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_data_db" value="Comunica&#10;(Leitura/Escrita)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_data_db">
+          <mxGeometry x="-0.1" y="0" relative="1" as="geometry">
+            <mxPoint y="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

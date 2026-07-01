@@ -1,0 +1,94 @@
+<mxfile host="app.diagrams.net" modified="2024-06-30T00:00:00.000Z" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram name="Fluxo de Autenticação e Controle de Acesso" id="finance-app-auth">
+    <mxGraphModel dx="1050" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Start -->
+        <mxCell id="node_start" value="Usuário acessa&#10;o sistema" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="340" y="40" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Login -->
+        <mxCell id="node_login" value="Autenticação via Google&#10;(Firebase Auth)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="310" y="150" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Verify Allowlist -->
+        <mxCell id="node_verify" value="Sistema consulta a&#10;coleção 'allowed_users'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="310" y="260" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Decision -->
+        <mxCell id="node_decision" value="E-mail está na&#10;Allowlist?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="370" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Deny -->
+        <mxCell id="node_deny" value="Acesso Bloqueado&#10;(Acesso Negado)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="380" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Allow -->
+        <mxCell id="node_allow" value="Acesso Liberado&#10;ao FinanceApp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="310" y="510" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Notes -->
+        <mxCell id="node_note1" value="Firestore Rule (Regra 1):&#10;allow read: if request.auth != null;&#10;&#10;Garante que qualquer pessoa logada possa consultar a lista e validar seu próprio acesso." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="240" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_note2" value="Firestore Rule (Regra 2):&#10;allow read, write: if isAdmin();&#10;&#10;Somente e-mails permitidos (isAdmin) podem ler e gravar dados financeiros no restante do banco." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="495" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="edge_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="node_start" target="node_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="node_login" target="node_verify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_auth_ok" value="Autenticação OK" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_2">
+          <mxGeometry x="-0.2" y="0" relative="1" as="geometry">
+            <mxPoint x="45" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="node_verify" target="node_decision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_4_no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="node_decision" target="node_deny">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_no" value="Não" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1" vertex="1" connectable="0" parent="edge_4_no">
+          <mxGeometry x="-0.2" y="0" relative="1" as="geometry">
+            <mxPoint x="-10" y="-15" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_5_yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="node_decision" target="node_allow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_yes" value="Sim" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1" vertex="1" connectable="0" parent="edge_5_yes">
+          <mxGeometry x="-0.2" y="0" relative="1" as="geometry">
+            <mxPoint x="15" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Dashed links to notes -->
+        <mxCell id="edge_note1" style="edgeStyle=none;rounded=0;html=1;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=none;" edge="1" parent="1" source="node_verify" target="node_note1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_note2" style="edgeStyle=none;rounded=0;html=1;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=none;" edge="1" parent="1" source="node_allow" target="node_note2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
