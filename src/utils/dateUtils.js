@@ -21,8 +21,19 @@ export const calculateDueDate = (purchaseDate, closingDay, dueDay) => {
     const month = purchaseDate.getMonth();
     const year = purchaseDate.getFullYear();
 
-    // Quantos meses adiantar: 1 se comprou antes do fechamento, 2 se comprou no dia ou depois
-    const monthsAhead = day < closing ? 1 : 2;
+    // Verifica se o vencimento ocorre no mês seguinte ao fechamento
+    // Ex: fecha dia 25, vence dia 5 (do mês seguinte) -> true
+    // Ex: fecha dia 6, vence dia 10 (do mesmo mês) -> false
+    const isDueNextMonth = closing > due;
+
+    // Se comprou antes do fechamento (0), entra na fatura atual. 
+    // Se comprou no dia ou depois (1), entra na próxima fatura.
+    let monthsAhead = day < closing ? 0 : 1;
+
+    // Adiciona 1 mês extra se a regra do cartão joga o vencimento para o mês seguinte ao fechamento
+    if (isDueNextMonth) {
+        monthsAhead += 1;
+    }
 
     return new Date(year, month + monthsAhead, due, 12, 0, 0);
 };
