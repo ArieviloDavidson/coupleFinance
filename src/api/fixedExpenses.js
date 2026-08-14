@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { COLLECTIONS } from '../utils/constants';
+import { calculateDueDate } from '../utils/dateUtils';
 
 /**
  * Escuta todas as despesas fixas em tempo real.
@@ -80,21 +81,31 @@ export async function payFixedExpenseWithWallet(expenseItem, walletId, walletNam
 /**
  * Paga uma despesa fixa usando cartão de crédito.
  * Cria registro em cardsShopping (1x sem juros).
- * @param {Object} expenseItem - Item da despesa (description)
- * @param {string} cardId - ID do cartão
+ * @param {Object} expenseItem - Item da despesa (description, category)
+ * @param {string|Object} cardOrCardId - ID ou objeto do cartão
  * @param {number} value - Valor a pagar
+ * @param {Object} [cardData] - Dados opcionais do cartão (closingDay, dueDay)
  */
-export async function payFixedExpenseWithCard(expenseItem, cardId, value) {
+export async function payFixedExpenseWithCard(expenseItem, cardOrCardId, value, cardData = null) {
   const today = new Date();
+  const cardId = typeof cardOrCardId === 'object' && cardOrCardId !== null ? cardOrCardId.id : cardOrCardId;
+  const card = (typeof cardOrCardId === 'object' && cardOrCardId !== null) ? cardOrCardId : cardData;
+
+  let dueDate = today;
+  if (card && card.closingDay && card.dueDay) {
+    dueDate = calculateDueDate(today, card.closingDay, card.dueDay);
+  }
 
   return addDoc(collection(db, COLLECTIONS.CARDS_SHOPPING), {
     description: expenseItem.description,
     totalValue: value,
     installments: 1,
     installmentValue: value,
-    date: today,
+    purchaseDate: today,
+    dueDate: dueDate,
+    date: dueDate,
     cardId: cardId,
-    category: 'Contas',
+    category: expenseItem.category || 'Contas',
     status: 'aberto',
     installmentIndex: 1,
     originalTotal: value

@@ -50,7 +50,8 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
         alert(`Conta "${expenseItem.description}" paga via ${walletName}!`);
       } else {
         // --- CENÁRIO 2: PAGAMENTO VIA CARTÃO DE CRÉDITO ---
-        await payFixedExpenseWithCard(expenseItem, selectedSourceId, val);
+        const selectedCard = cards.find(c => c.id === selectedSourceId);
+        await payFixedExpenseWithCard(expenseItem, selectedCard || selectedSourceId, val);
         alert(`Conta "${expenseItem.description}" lançada no cartão!`);
       }
 

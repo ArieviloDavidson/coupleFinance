@@ -101,10 +101,11 @@ const Dashboard = ({ onNavigate }) => {
     // Verifica compras no cartão (pagamento via cartão de crédito)
     paidCardPurchases.forEach(p => {
       if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-      const pMonth = p.dateObj.toLocaleDateString('en-CA').slice(0, 7);
+      // Só considera paga se o status for 'pago' (independente do número de parcelas)
+      if (p.status !== 'pago') return;
+      const filterDate = p.dueDateObj || p.dateObj;
+      const pMonth = filterDate.toLocaleDateString('en-CA').slice(0, 7);
       if (pMonth === currentMonth) {
-        // Para compras parceladas, só considera paga se o status for 'pago'
-        if (p.installments > 1 && p.status !== 'pago') return;
         paidNames.add(cleanDescription(p.description));
       }
     });

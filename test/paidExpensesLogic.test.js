@@ -24,7 +24,7 @@ function cleanDescription(desc) {
 }
 
 /**
- * Simula a lógica reativa usada em Dashboard.jsx (useEffect #6)
+ * Simula a lógica reativa usada em Dashboard.jsx (useEffect #6) e FixedExpenses.jsx
  * para determinar quais despesas fixas já foram pagas no mês.
  *
  * @param {Array} transactions  - Todas as transações (subscribeTransactions)
@@ -47,10 +47,11 @@ function buildPaidExpensesSet(transactions, cardPurchases, currentMonth) {
   // 2. Verifica compras no cartão (cartão de crédito)
   cardPurchases.forEach(p => {
     if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-    const pMonth = p.dateObj.toISOString().slice(0, 7);
+    // Só considera paga se o status for 'pago' (independente do número de parcelas)
+    if (p.status !== 'pago') return;
+    const filterDate = p.dueDateObj || p.dateObj;
+    const pMonth = filterDate.toISOString().slice(0, 7);
     if (pMonth === currentMonth) {
-      // Para compras parceladas, só considera paga se o status for 'pago'
-      if (p.installments > 1 && p.status !== 'pago') return;
       paidNames.add(cleanDescription(p.description));
     }
   });
@@ -69,10 +70,11 @@ const makeTransaction = (description, category, date) => ({
   dateObj: new Date(date),
 });
 
-const makeCardPurchase = (description, category, date, { installments = 1, status = 'aberto' } = {}) => ({
+const makeCardPurchase = (description, category, date, { installments = 1, status = 'aberto', dueDate = null } = {}) => ({
   description,
   category,
   dateObj: new Date(date),
+  dueDateObj: dueDate ? new Date(dueDate) : null,
   installments,
   status,
 });
@@ -137,9 +139,31 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.size).toBe(1);
   });
 
-  it('deve detectar despesa paga via cartão de crédito (1x, status aberto)', () => {
+  it('deve detectar despesa paga via transação de Pagamento de Cartão (quitação de fatura)', () => {
+    const transactions = [
+      makeTransaction('Pagamento Cartão: Energia', 'Pagamento de Cartão', '2026-05-10'),
+    ];
+
+    const paid = buildPaidExpensesSet(transactions, [], CURRENT_MONTH);
+
+    expect(paid.has('energia')).toBe(true);
+    expect(paid.size).toBe(1);
+  });
+
+  it('NÃO deve detectar despesa lançada no cartão (1x) com status aberto', () => {
     const cardPurchases = [
       makeCardPurchase('Energia', 'Contas', '2026-05-10', { installments: 1, status: 'aberto' }),
+    ];
+
+    const paid = buildPaidExpensesSet([], cardPurchases, CURRENT_MONTH);
+
+    expect(paid.has('energia')).toBe(false);
+    expect(paid.size).toBe(0);
+  });
+
+  it('deve detectar despesa no cartão (1x) quando status for pago', () => {
+    const cardPurchases = [
+      makeCardPurchase('Energia', 'Contas', '2026-05-10', { installments: 1, status: 'pago' }),
     ];
 
     const paid = buildPaidExpensesSet([], cardPurchases, CURRENT_MONTH);
@@ -170,19 +194,19 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.size).toBe(0);
   });
 
-  it('deve detectar despesas pagas por ambos os métodos (carteira + cartão)', () => {
+  it('deve detectar despesas pagas por ambos os métodos (carteira + cartão pago)', () => {
     const transactions = [
       makeTransaction('Internet', 'Contas', '2026-05-05'),
     ];
     const cardPurchases = [
-      makeCardPurchase('Energia', 'Contas', '2026-05-10'),
+      makeCardPurchase('Energia', 'Contas', '2026-05-10', { status: 'pago' }),
     ];
 
     const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
 
     expect(paid.has('internet')).toBe(true);
-    expect(paid.has('energia')).toBe(true);
     expect(paid.size).toBe(2);
+    expect(paid.has('energia')).toBe(true);
   });
 
   it('não deve marcar despesa de outro mês como paga', () => {
@@ -190,7 +214,7 @@ describe('Lógica de Despesas Fixas Pagas', () => {
       makeTransaction('Internet', 'Contas', '2026-04-05'), // mês anterior
     ];
     const cardPurchases = [
-      makeCardPurchase('Energia', 'Contas', '2026-06-10'), // mês seguinte
+      makeCardPurchase('Energia', 'Contas', '2026-06-10', { status: 'pago' }), // mês seguinte
     ];
 
     const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
@@ -206,7 +230,7 @@ describe('Lógica de Despesas Fixas Pagas', () => {
       makeTransaction('Uber', 'Transporte', '2026-05-05'),
     ];
     const cardPurchases = [
-      makeCardPurchase('Notebook', 'Eletrônicos', '2026-05-15'),
+      makeCardPurchase('Notebook', 'Eletrônicos', '2026-05-15', { status: 'pago' }),
     ];
 
     const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
@@ -219,7 +243,7 @@ describe('Lógica de Despesas Fixas Pagas', () => {
       makeTransaction('Internet', 'Contas', '2026-05-05'),
     ];
     const cardPurchases = [
-      makeCardPurchase('Internet', 'Contas', '2026-05-10'),
+      makeCardPurchase('Internet', 'Contas', '2026-05-10', { status: 'pago' }),
     ];
 
     const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
@@ -234,15 +258,16 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.size).toBe(0);
   });
 
-  it('cenário completo: mix de pagas e não pagas', () => {
-    const fixedExpenses = ['Internet', 'Energia', 'Água', 'Aluguel', 'Gás'];
+  it('cenário completo: mix de pagas, pendentes no cartão e não pagas', () => {
+    const fixedExpenses = ['Internet', 'Energia', 'Água', 'Aluguel', 'Gás', 'Netflix'];
 
     const transactions = [
       makeTransaction('Internet', 'Contas', '2026-05-05'),
       makeTransaction('Aluguel', 'Contas', '2026-05-01'),
     ];
     const cardPurchases = [
-      makeCardPurchase('Energia', 'Contas', '2026-05-10'),
+      makeCardPurchase('Energia', 'Contas', '2026-05-10', { status: 'pago' }), // Paga no cartão
+      makeCardPurchase('Netflix', 'Assinaturas', '2026-05-01', { status: 'aberto' }), // Lançada no cartão, fatura ABERTA
     ];
 
     const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
@@ -252,9 +277,10 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.has('aluguel')).toBe(true);
     expect(paid.has('energia')).toBe(true);
 
-    // Não pagas: água, gás
+    // Não pagas / Pendentes: água, gás, netflix (fatura aberta)
     expect(paid.has('água')).toBe(false);
     expect(paid.has('gás')).toBe(false);
+    expect(paid.has('netflix')).toBe(false);
 
     // Cálculo de despesas não pagas (como no Dashboard)
     const expensesData = fixedExpenses.map(name => ({ description: name, value: 100 }));
@@ -262,7 +288,7 @@ describe('Lógica de Despesas Fixas Pagas', () => {
       .filter(item => !paid.has(cleanDescription(item.description)))
       .reduce((acc, item) => acc + item.value, 0);
 
-    expect(unpaidTotal).toBe(200); // Água (100) + Gás (100)
+    expect(unpaidTotal).toBe(300); // Água (100) + Gás (100) + Netflix (100)
   });
 });
 
@@ -286,20 +312,38 @@ describe('Reatividade — Set atualiza ao receber novos dados', () => {
     expect(after.has('internet')).toBe(true);
   });
 
-  it('deve refletir novo pagamento via cartão ao recalcular', () => {
-    // Estado ANTES do pagamento
+  it('deve manter despesa como não paga se compra no cartão for lançada com status aberto', () => {
+    // Estado ANTES do lançamento
     const before = buildPaidExpensesSet([], [], CURRENT_MONTH);
     expect(before.has('energia')).toBe(false);
 
-    // Estado APÓS pagamento (simula callback do subscribeCardsShopping)
-    const afterPurchases = [
-      makeCardPurchase('Energia', 'Contas', '2026-05-15'),
+    // Estado APÓS lançar no cartão com status aberto
+    const openPurchases = [
+      makeCardPurchase('Energia', 'Contas', '2026-05-15', { status: 'aberto' }),
     ];
-    const after = buildPaidExpensesSet([], afterPurchases, CURRENT_MONTH);
-    expect(after.has('energia')).toBe(true);
+    const afterOpen = buildPaidExpensesSet([], openPurchases, CURRENT_MONTH);
+    expect(afterOpen.has('energia')).toBe(false);
   });
 
-  it('deve calcular monthlyForecast corretamente após pagamento', () => {
+  it('deve refletir novo pagamento via cartão ao pagar a fatura (status vira pago)', () => {
+    // Estado APÓS quitação da fatura/compra no cartão
+    const paidPurchases = [
+      makeCardPurchase('Energia', 'Contas', '2026-05-15', { status: 'pago' }),
+    ];
+    const afterPaid = buildPaidExpensesSet([], paidPurchases, CURRENT_MONTH);
+    expect(afterPaid.has('energia')).toBe(true);
+  });
+
+  it('deve refletir novo pagamento de cartão via transação gerada na quitação da fatura', () => {
+    // Estado APÓS pagamento da fatura gerando transação
+    const invoiceTransactions = [
+      makeTransaction('Pagamento Cartão: Energia', 'Pagamento de Cartão', '2026-05-15'),
+    ];
+    const afterInvoice = buildPaidExpensesSet(invoiceTransactions, [], CURRENT_MONTH);
+    expect(afterInvoice.has('energia')).toBe(true);
+  });
+
+  it('deve calcular monthlyForecast corretamente: não reduz despesas pendentes até que o cartão seja pago', () => {
     const totalBalance = 5000;
     const fixedExpenses = [
       { description: 'Internet', value: 100 },
@@ -307,37 +351,47 @@ describe('Reatividade — Set atualiza ao receber novos dados', () => {
       { description: 'Água', value: 80 },
     ];
 
-    // ANTES: nenhuma despesa paga
-    const paidBefore = buildPaidExpensesSet([], [], CURRENT_MONTH);
-    const unpaidBefore = fixedExpenses
-      .filter(e => !paidBefore.has(cleanDescription(e.description)))
+    // 1. ANTES de qualquer ação: nenhuma despesa paga
+    const paidInitial = buildPaidExpensesSet([], [], CURRENT_MONTH);
+    const unpaidInitial = fixedExpenses
+      .filter(e => !paidInitial.has(cleanDescription(e.description)))
       .reduce((acc, e) => acc + e.value, 0);
-    const forecastBefore = totalBalance - unpaidBefore;
-    expect(forecastBefore).toBe(4620); // 5000 - 380
+    const forecastInitial = totalBalance - unpaidInitial;
+    expect(forecastInitial).toBe(4620); // 5000 - 380
 
-    // APÓS pagar Internet via carteira:
-    const transactions = [makeTransaction('Internet', 'Contas', '2026-05-10')];
-    const paidAfter = buildPaidExpensesSet(transactions, [], CURRENT_MONTH);
-    const unpaidAfter = fixedExpenses
-      .filter(e => !paidAfter.has(cleanDescription(e.description)))
+    // 2. APÓS lançar Energia no cartão (status aberto): ainda pendente de quitação
+    const cardOpen = [makeCardPurchase('Energia', 'Contas', '2026-05-10', { status: 'aberto' })];
+    const paidCardOpen = buildPaidExpensesSet([], cardOpen, CURRENT_MONTH);
+    const unpaidCardOpen = fixedExpenses
+      .filter(e => !paidCardOpen.has(cleanDescription(e.description)))
       .reduce((acc, e) => acc + e.value, 0);
-    // totalBalance já foi descontado pelo Firestore (subscribeWallets reagiu)
-    const newBalance = 4900; // 5000 - 100
-    const forecastAfter = newBalance - unpaidAfter;
-    expect(forecastAfter).toBe(4620); // 4900 - 280 = 4620 (valor correto e igual ao anterior)
+    expect(unpaidCardOpen).toBe(380); // Continua 380 pendente
+    expect(totalBalance - unpaidCardOpen).toBe(4620);
+
+    // 3. APÓS pagar a fatura do cartão (carteira é debitada e status vira pago):
+    const cardPaid = [makeCardPurchase('Energia', 'Contas', '2026-05-10', { status: 'pago' })];
+    const paidCardPaid = buildPaidExpensesSet([], cardPaid, CURRENT_MONTH);
+    const unpaidCardPaid = fixedExpenses
+      .filter(e => !paidCardPaid.has(cleanDescription(e.description)))
+      .reduce((acc, e) => acc + e.value, 0);
+    expect(unpaidCardPaid).toBe(180); // Resta Internet (100) + Água (80)
+    const newBalance = 4800; // 5000 - 200 debitado da carteira
+    const forecastFinal = newBalance - unpaidCardPaid;
+    expect(forecastFinal).toBe(4620); // 4800 - 180 = 4620 (previsão permanece consistente)
   });
 });
 
 // -----------------------------------------------
 // Testes: Payload de pagamento de despesa fixa via cartão
-// (fixedExpenses.js — payFixedExpenseWithCard L87-101)
+// (fixedExpenses.js — payFixedExpenseWithCard)
 // -----------------------------------------------
 describe('Payload: Pagamento de Despesa Fixa via Cartão', () => {
-  it('deve montar registro correto em cardsShopping', () => {
+  it('deve montar registro correto em cardsShopping com status aberto e dueDate', () => {
     const expenseItem = { description: 'Energia' };
     const cardId = 'card-123';
     const value = 150;
     const today = new Date();
+    const dueDate = new Date('2026-06-10T12:00:00');
 
     // Simula o payload criado por payFixedExpenseWithCard
     const payload = {
@@ -345,7 +399,9 @@ describe('Payload: Pagamento de Despesa Fixa via Cartão', () => {
       totalValue: value,
       installments: 1,
       installmentValue: value,
-      date: today,
+      purchaseDate: today,
+      dueDate: dueDate,
+      date: dueDate,
       cardId: cardId,
       category: 'Contas',
       status: 'aberto',
@@ -359,17 +415,27 @@ describe('Payload: Pagamento de Despesa Fixa via Cartão', () => {
     expect(payload.installmentValue).toBe(payload.totalValue);
     expect(payload.status).toBe('aberto');
     expect(payload.cardId).toBe(cardId);
+    expect(payload.dueDate).toEqual(dueDate);
   });
 
-  it('categoria deve ser "Contas" para ser detectada como paga no buildPaidExpensesSet', () => {
-    const purchase = makeCardPurchase('Energia', 'Contas', '2026-05-10', { installments: 1, status: 'aberto' });
-    const paid = buildPaidExpensesSet([], [purchase], CURRENT_MONTH);
-    expect(paid.has('energia')).toBe(true);
+  it('categoria "Contas" no cartão só deve ser detectada como paga se status for "pago"', () => {
+    const purchaseOpen = makeCardPurchase('Energia', 'Contas', '2026-05-10', { installments: 1, status: 'aberto' });
+    const paidOpen = buildPaidExpensesSet([], [purchaseOpen], CURRENT_MONTH);
+    expect(paidOpen.has('energia')).toBe(false);
+
+    const purchasePaid = makeCardPurchase('Energia', 'Contas', '2026-05-10', { installments: 1, status: 'pago' });
+    const paidPaid = buildPaidExpensesSet([], [purchasePaid], CURRENT_MONTH);
+    expect(paidPaid.has('energia')).toBe(true);
   });
 
-  it('categoria "Assinaturas" também deve ser detectada como paga', () => {
-    const purchase = makeCardPurchase('Spotify', 'Assinaturas', '2026-05-01', { installments: 1, status: 'aberto' });
-    const paid = buildPaidExpensesSet([], [purchase], CURRENT_MONTH);
-    expect(paid.has('spotify')).toBe(true);
+  it('categoria "Assinaturas" no cartão só deve ser detectada como paga se status for "pago"', () => {
+    const purchaseOpen = makeCardPurchase('Spotify', 'Assinaturas', '2026-05-01', { installments: 1, status: 'aberto' });
+    const paidOpen = buildPaidExpensesSet([], [purchaseOpen], CURRENT_MONTH);
+    expect(paidOpen.has('spotify')).toBe(false);
+
+    const purchasePaid = makeCardPurchase('Spotify', 'Assinaturas', '2026-05-01', { installments: 1, status: 'pago' });
+    const paidPaid = buildPaidExpensesSet([], [purchasePaid], CURRENT_MONTH);
+    expect(paidPaid.has('spotify')).toBe(true);
   });
 });
+

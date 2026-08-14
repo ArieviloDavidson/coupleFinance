@@ -66,11 +66,11 @@ const FixedExpenses = ({ onNavigate }) => {
       const cardPurchases = await fetchCardsShopping();
       cardPurchases.forEach(p => {
         if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
-        const pMonth = p.dateObj.toLocaleDateString('en-CA').slice(0, 7);
+        // Só consideramos paga se o status da compra no cartão for 'pago'.
+        if (p.status !== 'pago') return;
+        const filterDate = p.dueDateObj || p.dateObj;
+        const pMonth = filterDate.toLocaleDateString('en-CA').slice(0, 7);
         if (pMonth === currentMonth) {
-          // Para compras parceladas ou assinaturas recorrentes no cartão,
-          // só consideramos paga se o status da parcela deste mês for 'pago'.
-          if (p.installments > 1 && p.status !== 'pago') return;
           paidNames.add(cleanDescription(p.description));
         }
       });
