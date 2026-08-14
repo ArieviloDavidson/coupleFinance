@@ -116,11 +116,13 @@ const ChartExpensesCategory = () => {
               <Pie
                 data={data}
                 cx="50%" cy="50%"
-                innerRadius={160}
-                outerRadius={200}
-                paddingAngle={5}
+                innerRadius={120}
+                outerRadius={180}
+                paddingAngle={4}
                 dataKey="value"
                 onClick={(entry) => handleCategoryClick(entry.name)}
+                label={({ percent }) => (percent >= 0.02 ? `${(percent * 100).toFixed(0)}%` : '')}
+                labelLine={{ stroke: '#a0aec0', strokeWidth: 1 }}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cursor="pointer" />
