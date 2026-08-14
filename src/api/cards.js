@@ -49,8 +49,8 @@ export function subscribeCardsShopping(callback) {
       };
     });
 
-    // Ordena por data (mais recente primeiro)
-    data.sort((a, b) => b.dateObj - a.dateObj);
+    // Ordena por data de compra real (mais recente primeiro)
+    data.sort((a, b) => (b.purchaseDateObj || b.dateObj) - (a.purchaseDateObj || a.dateObj));
     callback(data);
   });
 }

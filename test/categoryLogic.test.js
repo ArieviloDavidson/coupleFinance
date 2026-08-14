@@ -170,6 +170,35 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(total).toBe(370);            // 250 + 120 = 370 (Hortifruti aberto e Pagamento de Cartão ignorados)
   });
 
+  it('ListCards — deve ordenar compras por status (aberto primeiro) e data da compra real (mais recente primeiro)', () => {
+    const shoppingList = [
+      { id: '1', description: '99 (Paga antiga)', status: 'pago', purchaseDateObj: new Date('2026-06-25T12:00:00'), dueDateObj: new Date('2026-08-03T12:00:00'), dateObj: new Date('2026-08-03T12:00:00') },
+      { id: '2', description: 'Assaí (Paga recente)', status: 'pago', purchaseDateObj: new Date('2026-07-21T12:00:00'), dueDateObj: new Date('2026-08-03T12:00:00'), dateObj: new Date('2026-08-03T12:00:00') },
+      { id: '3', description: '99 (Paga intermediária)', status: 'pago', purchaseDateObj: new Date('2026-07-14T12:00:00'), dueDateObj: new Date('2026-08-03T12:00:00'), dateObj: new Date('2026-08-03T12:00:00') },
+      { id: '4', description: 'Padaria (Aberta recente)', status: 'aberto', purchaseDateObj: new Date('2026-07-25T12:00:00'), dueDateObj: new Date('2026-08-03T12:00:00'), dateObj: new Date('2026-08-03T12:00:00') },
+      { id: '5', description: 'Farmácia (Aberta antiga)', status: 'aberto', purchaseDateObj: new Date('2026-07-10T12:00:00'), dueDateObj: new Date('2026-08-03T12:00:00'), dateObj: new Date('2026-08-03T12:00:00') },
+    ];
+
+    const sorted = [...shoppingList].sort((a, b) => {
+      const aPaid = a.status === 'pago' ? 1 : 0;
+      const bPaid = b.status === 'pago' ? 1 : 0;
+      if (aPaid !== bPaid) return aPaid - bPaid;
+
+      const dateA = a.purchaseDateObj || a.dateObj;
+      const dateB = b.purchaseDateObj || b.dateObj;
+      return dateB - dateA;
+    });
+
+    // Abertas primeiro, ordenadas por compra decrescente:
+    expect(sorted[0].id).toBe('4'); // Padaria (25/07)
+    expect(sorted[1].id).toBe('5'); // Farmácia (10/07)
+
+    // Pagas depois, ordenadas por compra decrescente:
+    expect(sorted[2].id).toBe('2'); // Assaí (21/07)
+    expect(sorted[3].id).toBe('3'); // 99 (14/07)
+    expect(sorted[4].id).toBe('1'); // 99 (25/06)
+  });
+
   // Budgets.jsx (L115-127) — monta array final para o gráfico
   it('deve montar dados do gráfico com meta, gasto e percentual', () => {
     const limitsObj = { 'Alimentação': 500, 'Transporte': 200 };

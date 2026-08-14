@@ -113,8 +113,10 @@ const ListCards = ({ initialCardFilter }) => {
       const bPaid = b.status === 'pago' ? 1 : 0;
       if (aPaid !== bPaid) return aPaid - bPaid;
 
-      // 2º critério: data de compra mais recente primeiro
-      return b.dateObj - a.dateObj;
+      // 2º critério: data de compra real mais recente primeiro
+      const dateA = a.purchaseDateObj || a.dateObj;
+      const dateB = b.purchaseDateObj || b.dateObj;
+      return dateB - dateA;
     });
 
   // --- Resumo da Fatura (Mês selecionado) ---
