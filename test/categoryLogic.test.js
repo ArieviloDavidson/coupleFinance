@@ -93,6 +93,41 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(spendingObj['Pagamento de Cartão']).toBe(0);
   });
 
+  it('deve agregar compras de cartão no orçamento usando a data da compra (purchaseDateObj)', () => {
+    const spendingCardObj = { 'Mercado': 0, 'Lazer': 0 };
+    const shoppingData = [
+      {
+        category: 'Mercado',
+        totalValue: 1000,
+        purchaseDateObj: new Date('2026-08-14T12:00:00'), // Compra em Agosto
+        dueDateObj: new Date('2026-09-05T12:00:00'),      // Vencimento em Setembro
+      },
+      {
+        category: 'Lazer',
+        totalValue: 200,
+        purchaseDateObj: new Date('2026-07-20T12:00:00'), // Compra em Julho
+        dueDateObj: new Date('2026-08-05T12:00:00'),      // Vencimento em Agosto
+      }
+    ];
+
+    const currentMonth = '2026-08';
+
+    shoppingData.forEach(c => {
+      const filterTargetDate = c.purchaseDateObj || c.dateObj;
+      const cMonth = filterTargetDate.toISOString().slice(0, 7);
+
+      if (cMonth === currentMonth) {
+        const cat = c.category || 'Outros';
+        if (spendingCardObj[cat] !== undefined) spendingCardObj[cat] += Number(c.totalValue);
+      }
+    });
+
+    // Compra de Agosto entra em Agosto (1000)
+    expect(spendingCardObj['Mercado']).toBe(1000);
+    // Compra de Julho não entra em Agosto (0)
+    expect(spendingCardObj['Lazer']).toBe(0);
+  });
+
   // Budgets.jsx (L115-127) — monta array final para o gráfico
   it('deve montar dados do gráfico com meta, gasto e percentual', () => {
     const limitsObj = { 'Alimentação': 500, 'Transporte': 200 };
@@ -114,6 +149,35 @@ describe('Budgets — agregação de gastos por categoria', () => {
     const lazer = finalData.find(d => d.name === 'Lazer');
     expect(lazer.limit).toBe(0);
     expect(lazer.percent).toBe(0);
+  });
+
+  it('deve recalcular remaining e percent corretamente ao atualizar a meta dinamicamente (handleSaveLimit)', () => {
+    // Estado inicial: Gasto de 1000 sem meta (limit = 0, remaining = -1000)
+    let spendingData = [
+      { name: 'Mercado', spent: 1000, limit: 0, percent: 0, remaining: -1000 }
+    ];
+
+    // Simula handleSaveLimit ao cadastrar meta de 2000
+    const newLimit = 2000;
+    const editingCategory = 'Mercado';
+
+    spendingData = spendingData.map(item => {
+      if (item.name === editingCategory) {
+        const val = Number(newLimit);
+        return {
+          ...item,
+          limit: val,
+          percent: val > 0 ? (item.spent / val) * 100 : 0,
+          remaining: val - item.spent
+        };
+      }
+      return item;
+    });
+
+    const mercado = spendingData.find(d => d.name === 'Mercado');
+    expect(mercado.limit).toBe(2000);
+    expect(mercado.percent).toBe(50);
+    expect(mercado.remaining).toBe(1000); // Resta 1000 (positivo, não excedeu)
   });
 });
 
@@ -172,6 +236,42 @@ describe('ChartExpensesCategory — agrupamento para gráfico de pizza', () => {
     });
 
     expect(grouped['Outros']).toBe(150);
+  });
+
+  it('deve incluir compras no cartão com status "pago" agrupadas pela data da compra (purchaseDateObj)', () => {
+    const cardPurchases = [
+      {
+        category: 'Contas',
+        totalValue: 150,
+        status: 'pago',
+        purchaseDateObj: new Date('2026-08-14T12:00:00'), // Compra em Agosto
+        dueDateObj: new Date('2026-09-05T12:00:00'),      // Vencimento em Setembro
+      },
+      {
+        category: 'Alimentação',
+        totalValue: 80,
+        status: 'aberto', // Não paga: não entra no gráfico
+        purchaseDateObj: new Date('2026-08-14T12:00:00'),
+        dueDateObj: new Date('2026-09-05T12:00:00'),
+      },
+    ];
+
+    const filterDate = '2026-08'; // Mês da compra
+    const grouped = {};
+
+    cardPurchases.forEach(item => {
+      if (item.status !== 'pago') return;
+      const filterTargetDate = item.purchaseDateObj || item.dateObj;
+      const itemMonth = filterTargetDate.toISOString().slice(0, 7);
+      const cat = item.category || 'Outros';
+
+      if (itemMonth === filterDate) {
+        grouped[cat] = (grouped[cat] || 0) + Number(item.totalValue);
+      }
+    });
+
+    expect(grouped['Contas']).toBe(150); // Entra em Agosto
+    expect(grouped['Alimentação']).toBeUndefined(); // Aberto: não entra
   });
 });
 

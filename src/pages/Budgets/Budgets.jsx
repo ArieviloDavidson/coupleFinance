@@ -107,7 +107,7 @@ const Budgets = () => {
         const shoppingData = await fetchCardsShopping();
 
         shoppingData.forEach(c => {
-          const filterTargetDate = c.dueDateObj || c.dateObj;
+          const filterTargetDate = c.purchaseDateObj || c.dateObj;
           const cMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
 
           if (cMonth === currentMonth) {
@@ -162,7 +162,12 @@ const Budgets = () => {
       setSpendingData(prev => prev.map(item => {
         if (item.name === editingCategory) {
           const val = Number(newLimit);
-          return { ...item, limit: val, percent: val > 0 ? (item.spent / val) * 100 : 0 };
+          return {
+            ...item,
+            limit: val,
+            percent: val > 0 ? (item.spent / val) * 100 : 0,
+            remaining: val - item.spent
+          };
         }
         return item;
       }));
@@ -184,7 +189,7 @@ const Budgets = () => {
       <div className="budgets-header header-container">
         <div className="header-left">
           <h1 className="page-title">Metas e Orçamentos</h1>
-          <p className="page-subtitle">Planeje seus limites (Considerando vencimento da fatura)</p>
+          <p className="page-subtitle">Planeje seus limites mensais</p>
         </div>
 
         <div className="budgets-filters">
