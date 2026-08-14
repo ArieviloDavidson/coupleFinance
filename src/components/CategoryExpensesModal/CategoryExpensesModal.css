@@ -1,0 +1,160 @@
+/* Estilos do Modal de Detalhamento de Gastos por Categoria */
+
+.category-expenses-modal {
+  max-width: 500px;
+  width: 95%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.category-modal-subtitle {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  margin-top: 2px;
+  display: block;
+}
+
+/* Cards de Resumo */
+.category-summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.summary-card {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  border: 1px solid #edf2f7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-label {
+  font-size: 0.72rem;
+  color: #7f8c8d;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+
+/* Container de Itens */
+.category-items-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 180px;
+  max-height: 380px;
+  padding-right: 4px;
+}
+
+.items-title {
+  font-size: 0.9rem;
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+/* Listagem de Itens */
+.category-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-expense-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.category-expense-item:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.item-badge-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.item-info-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-description {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.item-source-name {
+  font-weight: 500;
+}
+
+.item-dot {
+  color: #cbd5e1;
+}
+
+.item-date {
+  color: #64748b;
+}
+
+.item-value-col {
+  font-size: 0.95rem;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* Estado Vazio */
+.category-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+  padding: 20px;
+}

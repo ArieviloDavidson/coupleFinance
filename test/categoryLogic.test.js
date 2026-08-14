@@ -93,26 +93,36 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(spendingObj['Pagamento de Cartão']).toBe(0);
   });
 
-  it('deve agregar compras de cartão no orçamento usando a data da compra (purchaseDateObj)', () => {
-    const spendingCardObj = { 'Mercado': 0, 'Lazer': 0 };
+  it('deve agregar compras de cartão no orçamento usando a data da compra (purchaseDateObj) e apenas status pago', () => {
+    const spendingCardObj = { 'Mercado': 0, 'Lazer': 0, 'Alimentação': 0 };
     const shoppingData = [
       {
         category: 'Mercado',
         totalValue: 1000,
-        purchaseDateObj: new Date('2026-08-14T12:00:00'), // Compra em Agosto
-        dueDateObj: new Date('2026-09-05T12:00:00'),      // Vencimento em Setembro
+        status: 'pago',
+        purchaseDateObj: new Date('2026-08-14T12:00:00'), // Compra em Agosto Paga
+        dueDateObj: new Date('2026-09-05T12:00:00'),
+      },
+      {
+        category: 'Alimentação',
+        totalValue: 300,
+        status: 'aberto', // Compra em Agosto ABERTA (não entra)
+        purchaseDateObj: new Date('2026-08-14T12:00:00'),
+        dueDateObj: new Date('2026-09-05T12:00:00'),
       },
       {
         category: 'Lazer',
         totalValue: 200,
+        status: 'pago',
         purchaseDateObj: new Date('2026-07-20T12:00:00'), // Compra em Julho
-        dueDateObj: new Date('2026-08-05T12:00:00'),      // Vencimento em Agosto
+        dueDateObj: new Date('2026-08-05T12:00:00'),
       }
     ];
 
     const currentMonth = '2026-08';
 
     shoppingData.forEach(c => {
+      if (c.status !== 'pago') return;
       const filterTargetDate = c.purchaseDateObj || c.dateObj;
       const cMonth = filterTargetDate.toISOString().slice(0, 7);
 
@@ -122,10 +132,42 @@ describe('Budgets — agregação de gastos por categoria', () => {
       }
     });
 
-    // Compra de Agosto entra em Agosto (1000)
+    // Compra de Agosto Paga entra em Agosto (1000)
     expect(spendingCardObj['Mercado']).toBe(1000);
+    // Compra de Agosto Aberta não entra (0)
+    expect(spendingCardObj['Alimentação']).toBe(0);
     // Compra de Julho não entra em Agosto (0)
     expect(spendingCardObj['Lazer']).toBe(0);
+  });
+
+  it('CategoryExpensesModal — deve filtrar transações e compras pagas da categoria sem duplicar', () => {
+    const transactions = [
+      { id: 't1', description: 'Supermercado Extra', category: 'Mercado', value: 250, dateObj: new Date('2026-08-10T12:00:00'), walletName: 'Nubank' },
+      { id: 't2', description: 'Pagamento Cartão: Mercado', category: 'Pagamento de Cartão', value: 500, dateObj: new Date('2026-08-10T12:00:00') },
+      { id: 't3', description: 'Padaria', category: 'Mercado', value: 50, dateObj: new Date('2026-07-10T12:00:00') }, // Mês anterior
+    ];
+
+    const cardPurchases = [
+      { id: 'c1', description: 'Feira Livre', category: 'Mercado', totalValue: 120, status: 'pago', purchaseDateObj: new Date('2026-08-12T12:00:00'), cardId: 'card1' },
+      { id: 'c2', description: 'Hortifruti', category: 'Mercado', totalValue: 80, status: 'aberto', purchaseDateObj: new Date('2026-08-14T12:00:00'), cardId: 'card1' }, // Aberto
+    ];
+
+    const monthKey = '2026-08';
+    const targetCategory = 'Mercado';
+
+    const walletItems = transactions
+      .filter(t => t.category === targetCategory && t.category !== 'Pagamento de Cartão' && t.dateObj.toISOString().slice(0, 7) === monthKey)
+      .map(t => ({ description: t.description, value: Number(t.value), source: 'wallet' }));
+
+    const cardItems = cardPurchases
+      .filter(c => c.category === targetCategory && c.status === 'pago' && c.purchaseDateObj.toISOString().slice(0, 7) === monthKey)
+      .map(c => ({ description: c.description, value: Number(c.totalValue), source: 'card' }));
+
+    const total = [...walletItems, ...cardItems].reduce((sum, item) => sum + item.value, 0);
+
+    expect(walletItems.length).toBe(1); // Apenas Supermercado Extra (250)
+    expect(cardItems.length).toBe(1);   // Apenas Feira Livre (120)
+    expect(total).toBe(370);            // 250 + 120 = 370 (Hortifruti aberto e Pagamento de Cartão ignorados)
   });
 
   // Budgets.jsx (L115-127) — monta array final para o gráfico

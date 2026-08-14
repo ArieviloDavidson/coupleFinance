@@ -99,6 +99,34 @@
   min-height: 20px;
 }
 
+.budget-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.btn-view-category-expenses {
+  background: none;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-view-category-expenses:hover {
+  background: #ebf5fb;
+  color: #2980b9;
+  border-color: #bee3f8;
+}
+
 .set-goal-text {
   color: #3498db;
   font-weight: 600;

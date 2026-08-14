@@ -5,6 +5,7 @@ import { fetchExpenseTransactions } from '../../api/transactions';
 import { fetchBudgetsByMonth, saveBudgetLimit } from '../../api/budgets';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
+import CategoryExpensesModal from '../../components/CategoryExpensesModal/CategoryExpensesModal';
 import './Budgets.css';
 import '../../shared.css';
 
@@ -43,11 +44,17 @@ const Budgets = () => {
   const [sources, setSources] = useState({ wallets: [], cards: [] });
   const [budgetLimits, setBudgetLimits] = useState({});
   const [spendingData, setSpendingData] = useState([]);
+  const [rawTransactions, setRawTransactions] = useState([]);
+  const [rawCardPurchases, setRawCardPurchases] = useState([]);
 
-  // Modal de Edição
+  // Modal de Edição de Meta
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [newLimit, setNewLimit] = useState('');
+
+  // Modal de Detalhamento de Gastos
+  const [selectedCategoryForModal, setSelectedCategoryForModal] = useState(null);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   // 1. Carrega as Fontes
   useEffect(() => {
@@ -82,11 +89,15 @@ const Budgets = () => {
         spendingCardObj[cat] = 0;
       });
 
+      const transactions = await fetchExpenseTransactions();
+      const shoppingData = await fetchCardsShopping();
+
+      setRawTransactions(transactions);
+      setRawCardPurchases(shoppingData);
+
       // --- B1. Transações (Wallets) ---
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
       if (selectedSource === 'all' || isWalletFilter) {
-        const transactions = await fetchExpenseTransactions();
-
         transactions.forEach(t => {
           if (t.category === 'Pagamento de Cartão') return;
 
@@ -104,9 +115,10 @@ const Budgets = () => {
       // --- B2. Compras (Cartões) ---
       const isCardFilter = sources.cards.some(c => c.id === selectedSource);
       if (selectedSource === 'all' || isCardFilter) {
-        const shoppingData = await fetchCardsShopping();
-
         shoppingData.forEach(c => {
+          // Apenas compras já pagas configuram gasto real
+          if (c.status !== 'pago') return;
+
           const filterTargetDate = c.purchaseDateObj || c.dateObj;
           const cMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
 
@@ -184,6 +196,12 @@ const Budgets = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleOpenCategoryModal = (categoryName) => {
+    if (!categoryName) return;
+    setSelectedCategoryForModal(categoryName);
+    setIsCategoryModalOpen(true);
+  };
+
   return (
     <div className="budgets-container container">
       <div className="budgets-header header-container">
@@ -259,22 +277,37 @@ const Budgets = () => {
                 ></div>
               </div>
 
-              <div className="budget-status">
-                {item.limit > 0 ? (
-                  item.remaining >= 0
-                    ? <span style={{ color: '#7f8c8d' }}>Resta: R$ {item.remaining.toFixed(2)}</span>
-                    : <span style={{ color: '#c0392b', fontWeight: 'bold' }}>Excedeu: R$ {Math.abs(item.remaining).toFixed(2)}</span>
-                ) : (
-                  <span className="set-goal-text">Definir Meta +</span>
-                )}
+              <div className="budget-card-footer">
+                <button
+                  type="button"
+                  className="btn-view-category-expenses"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCategoryModal(item.name);
+                  }}
+                  title="Ver gastos detalhados desta categoria"
+                >
+                  Ver Gastos 🔍
+                </button>
+
+                <div className="budget-status">
+                  {item.limit > 0 ? (
+                    item.remaining >= 0
+                      ? <span style={{ color: '#7f8c8d' }}>Resta: R$ {item.remaining.toFixed(2)}</span>
+                      : <span style={{ color: '#c0392b', fontWeight: 'bold' }}>Excedeu: R$ {Math.abs(item.remaining).toFixed(2)}</span>
+                  ) : (
+                    <span className="set-goal-text">Definir Meta +</span>
+                  )}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
+      {/* Modal de Edição de Meta */}
       {isEditModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsEditModalOpen(false); }}>
           <div className="modal-content" style={{ maxWidth: '300px' }}>
             <h3>Meta: {editingCategory}</h3>
             <p style={{ fontSize: '0.9rem', color: '#666' }}>Defina o teto de gastos para {currentMonth}</p>
@@ -283,7 +316,7 @@ const Budgets = () => {
               value={newLimit}
               onChange={e => setNewLimit(e.target.value)}
               placeholder="R$ 0,00"
-              className="budget-input" // Adicionei classe para facilitar se quiser customizar mais
+              className="budget-input"
             />
 
             <div className="modal-actions">
@@ -293,6 +326,17 @@ const Budgets = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Detalhamento dos Gastos da Categoria */}
+      <CategoryExpensesModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        category={selectedCategoryForModal}
+        monthKey={currentMonth}
+        transactions={rawTransactions}
+        cardPurchases={rawCardPurchases}
+        cards={sources.cards}
+      />
     </div>
   );
 };
