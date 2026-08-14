@@ -57,7 +57,7 @@ const ChartExpensesCategory = () => {
       cardPurchases.forEach(item => {
         if (item.status !== 'pago') return;
 
-        const filterTargetDate = item.dueDateObj || item.dateObj;
+        const filterTargetDate = item.purchaseDateObj || item.dateObj;
         const itemMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
         const cat = item.category || 'Outros';
 
