@@ -232,77 +232,79 @@ const Budgets = () => {
         </div>
       </div>
 
-      <div className="budgets-chart-section">
-        <h3>Panorama Geral</h3>
-        <div style={{ width: '100%', height: 300 }}>
-          <ResponsiveContainer>
-            <BarChart data={spendingData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
-              <YAxis />
-              <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
-              <Legend />
-              <Bar dataKey="spentWallet" stackId="a" name="Gasto Carteira" fill="#8884d8" radius={[0, 0, 4, 4]} />
-              <Bar dataKey="spentCard" stackId="a" name="Gasto Cartão" fill="#c3b8ff" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="limit" name="Meta Definida" fill="#82ca9d" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="budgets-content page-container">
+        <div className="budgets-chart-section">
+          <h3>Panorama Geral</h3>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+              <BarChart data={spendingData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
+                <YAxis />
+                <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                <Legend />
+                <Bar dataKey="spentWallet" stackId="a" name="Gasto Carteira" fill="#8884d8" radius={[0, 0, 4, 4]} />
+                <Bar dataKey="spentCard" stackId="a" name="Gasto Cartão" fill="#c3b8ff" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="limit" name="Meta Definida" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
 
-      <div className="budgets-list">
-        {spendingData.map((item) => {
-          let progressColor = '#2ecc71';
-          if (item.percent > 75) progressColor = '#f1c40f';
-          if (item.percent >= 100) progressColor = '#e74c3c';
+        <div className="budgets-list">
+          {spendingData.map((item) => {
+            let progressColor = '#2ecc71';
+            if (item.percent > 75) progressColor = '#f1c40f';
+            if (item.percent >= 100) progressColor = '#e74c3c';
 
-          return (
-            <div key={item.name} className="budget-card" onClick={() => openEdit(item.name, item.limit)}>
-              <div className="budget-card-header">
-                <span className="cat-name">{item.name}</span>
-                <span className="cat-values">
-                  <strong>{item.spent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
-                  {' / '}
-                  <small>{item.limit > 0 ? item.limit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Sem meta'}</small>
-                </span>
-              </div>
+            return (
+              <div key={item.name} className="budget-card" onClick={() => openEdit(item.name, item.limit)}>
+                <div className="budget-card-header">
+                  <span className="cat-name">{item.name}</span>
+                  <span className="cat-values">
+                    <strong>{item.spent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                    {' / '}
+                    <small>{item.limit > 0 ? item.limit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Sem meta'}</small>
+                  </span>
+                </div>
 
-              <div className="progress-bg">
-                <div
-                  className="progress-fill"
-                  style={{
-                    width: `${Math.min(item.percent, 100)}%`,
-                    backgroundColor: progressColor
-                  }}
-                ></div>
-              </div>
+                <div className="progress-bg">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${Math.min(item.percent, 100)}%`,
+                      backgroundColor: progressColor
+                    }}
+                  ></div>
+                </div>
 
-              <div className="budget-card-footer">
-                <button
-                  type="button"
-                  className="btn-view-category-expenses"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenCategoryModal(item.name);
-                  }}
-                  title="Ver gastos detalhados desta categoria"
-                >
-                  Ver Gastos 🔍
-                </button>
+                <div className="budget-card-footer">
+                  <button
+                    type="button"
+                    className="btn-view-category-expenses"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCategoryModal(item.name);
+                    }}
+                    title="Ver gastos detalhados desta categoria"
+                  >
+                    Ver Gastos 🔍
+                  </button>
 
-                <div className="budget-status">
-                  {item.limit > 0 ? (
-                    item.remaining >= 0
-                      ? <span style={{ color: '#7f8c8d' }}>Resta: R$ {item.remaining.toFixed(2)}</span>
-                      : <span style={{ color: '#c0392b', fontWeight: 'bold' }}>Excedeu: R$ {Math.abs(item.remaining).toFixed(2)}</span>
-                  ) : (
-                    <span className="set-goal-text">Definir Meta +</span>
-                  )}
+                  <div className="budget-status">
+                    {item.limit > 0 ? (
+                      item.remaining >= 0
+                        ? <span style={{ color: '#7f8c8d' }}>Resta: R$ {item.remaining.toFixed(2)}</span>
+                        : <span style={{ color: '#c0392b', fontWeight: 'bold' }}>Excedeu: R$ {Math.abs(item.remaining).toFixed(2)}</span>
+                    ) : (
+                      <span className="set-goal-text">Definir Meta +</span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Modal de Edição de Meta */}
