@@ -320,62 +320,67 @@ const Investments = () => {
         </strong>
       </div>
 
-      {/* ===== GRÁFICOS ===== */}
-      <div className="investments-charts-grid">
-        <ChartInvestmentsByType data={chartPieData} />
-        <ChartInvestmentsByMonth investments={investments} />
-        <ChartInvestmentsValueByType data={chartBarData} />
-      </div>
-
-      {/* ===== LISTA DE MOVIMENTAÇÕES ===== */}
-      <div className="investments-movements-section">
-        <div className="movements-header">
-          <h3>Movimentações</h3>
-          <div className="month-nav">
-            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
-            <span className="month-label">{formatMonthLabel(filterDate)}</span>
-            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
-          </div>
+      {/* ===== LAYOUT PRINCIPAL: 30% GRÁFICOS / 70% TRANSAÇÕES ===== */}
+      <div className="investments-main-layout">
+        {/* ===== COLUNA ESQUERDA: GRÁFICOS (30%) ===== */}
+        <div className="investments-charts-column">
+          <ChartInvestmentsByType data={chartPieData} />
+          <ChartInvestmentsByMonth investments={investments} />
+          <ChartInvestmentsValueByType data={chartBarData} />
         </div>
 
-        <div className="investments-list">
-          {filteredInvestments.length === 0 ? (
-            <p className="no-data">Nenhuma movimentação neste período.</p>
-          ) : (
-            filteredInvestments.map(inv => (
-              <div key={inv.id} className="investment-item">
-                <button
-                  className="btn-delete-transaction"
-                  onClick={() => handleDeleteInvestment(inv)}
-                  title="Excluir e estornar saldo"
-                >
-                  &times;
-                </button>
-
-                <div className={`indicator ${inv.type}`} />
-
-                <div className="transaction-info">
-                  <span className="transaction-desc">{inv.description}</span>
-                  <span className="transaction-category">{inv.investmentTypeName}</span>
-                  <div className="transaction-meta">
-                    <span className="transaction-date">
-                      {inv.dateObj.toLocaleDateString('pt-BR')}
-                    </span>
-                    {inv.walletName && (
-                      <span className="transaction-wallet-badge">
-                        {inv.walletName}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={`transaction-value ${inv.type}`}>
-                  {inv.type === 'saida' ? '- ' : '+ '}
-                  {Number(inv.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </div>
+        {/* ===== COLUNA DIREITA: MOVIMENTAÇÕES (70%) ===== */}
+        <div className="investments-movements-column">
+          <div className="investments-movements-section">
+            <div className="movements-header">
+              <h3>Movimentações</h3>
+              <div className="month-nav">
+                <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+                <span className="month-label">{formatMonthLabel(filterDate)}</span>
+                <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
               </div>
-            ))
-          )}
+            </div>
+
+            <div className="investments-list">
+              {filteredInvestments.length === 0 ? (
+                <p className="no-data">Nenhuma movimentação neste período.</p>
+              ) : (
+                filteredInvestments.map(inv => (
+                  <div key={inv.id} className="investment-item">
+                    <button
+                      className="btn-delete-transaction"
+                      onClick={() => handleDeleteInvestment(inv)}
+                      title="Excluir e estornar saldo"
+                    >
+                      &times;
+                    </button>
+
+                    <div className={`indicator ${inv.type}`} />
+
+                    <div className="transaction-info">
+                      <span className="transaction-desc">{inv.description}</span>
+                      <span className="transaction-category">{inv.investmentTypeName}</span>
+                      <div className="transaction-meta">
+                        <span className="transaction-date">
+                          {inv.dateObj.toLocaleDateString('pt-BR')}
+                        </span>
+                        {inv.walletName && (
+                          <span className="transaction-wallet-badge">
+                            {inv.walletName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={`transaction-value ${inv.type}`}>
+                      {inv.type === 'saida' ? '- ' : '+ '}
+                      {Number(inv.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
