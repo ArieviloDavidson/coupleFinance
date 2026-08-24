@@ -51,27 +51,30 @@ const FixedExpenses = ({ onNavigate }) => {
       const currentMonth = now.toLocaleDateString('en-CA').slice(0, 7); // YYYY-MM
 
       const paidNames = new Set();
+      const fixedExpenseNames = new Set(expenses.map(e => cleanDescription(e.description)));
 
       // 1. Verifica transações normais (pagamento via carteira ou pagamento de cartão)
       const transactions = await fetchExpenseTransactions();
       transactions.forEach(t => {
-        if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+        const cleanDesc = cleanDescription(t.description);
+        if (!fixedExpenseNames.has(cleanDesc)) return;
         const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
         if (tMonth === currentMonth) {
-          paidNames.add(cleanDescription(t.description));
+          paidNames.add(cleanDesc);
         }
       });
 
       // 2. Verifica compras no cartão (pagamento via cartão de crédito)
       const cardPurchases = await fetchCardsShopping();
       cardPurchases.forEach(p => {
-        if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
+        const cleanDesc = cleanDescription(p.description);
+        if (!fixedExpenseNames.has(cleanDesc)) return;
         // Só consideramos paga se o status da compra no cartão for 'pago'.
         if (p.status !== 'pago') return;
         const filterDate = p.dueDateObj || p.dateObj;
         const pMonth = filterDate.toLocaleDateString('en-CA').slice(0, 7);
         if (pMonth === currentMonth) {
-          paidNames.add(cleanDescription(p.description));
+          paidNames.add(cleanDesc);
         }
       });
 
@@ -79,7 +82,8 @@ const FixedExpenses = ({ onNavigate }) => {
     };
 
     fetchPaidExpenses();
-  }, [payModalOpen]); // Re-busca quando o modal fecha (após pagar)
+  }, [payModalOpen, expenses]); // Re-busca quando o modal fecha (após pagar) ou despesas mudam
+
 
   const handleAdd = async (e) => {
     e.preventDefault();

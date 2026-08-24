@@ -88,30 +88,34 @@ const Dashboard = ({ onNavigate }) => {
     const now = new Date();
     const currentMonth = now.toLocaleDateString('en-CA').slice(0, 7);
     const paidNames = new Set();
+    const fixedExpenseNames = new Set(expenses.map(e => cleanDescription(e.description)));
 
     // Verifica transações normais (pagamento via carteira ou pagamento de cartão)
     paidTransactions.forEach(t => {
-      if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+      const cleanDesc = cleanDescription(t.description);
+      if (!fixedExpenseNames.has(cleanDesc)) return;
       const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
       if (tMonth === currentMonth) {
-        paidNames.add(cleanDescription(t.description));
+        paidNames.add(cleanDesc);
       }
     });
 
     // Verifica compras no cartão (pagamento via cartão de crédito)
     paidCardPurchases.forEach(p => {
-      if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
+      const cleanDesc = cleanDescription(p.description);
+      if (!fixedExpenseNames.has(cleanDesc)) return;
       // Só considera paga se o status for 'pago' (independente do número de parcelas)
       if (p.status !== 'pago') return;
       const filterDate = p.dueDateObj || p.dateObj;
       const pMonth = filterDate.toLocaleDateString('en-CA').slice(0, 7);
       if (pMonth === currentMonth) {
-        paidNames.add(cleanDescription(p.description));
+        paidNames.add(cleanDesc);
       }
     });
 
     setPaidExpenses(paidNames);
-  }, [paidTransactions, paidCardPurchases]);
+  }, [paidTransactions, paidCardPurchases, expenses]);
+
 
   // Cálculo da Previsão (Sobra)
   const predictionValue = totalFixedEntries - totalFixedExpenses;

@@ -54,8 +54,9 @@ export async function removeFixedExpense(id) {
  * @param {string} walletId - ID da carteira
  * @param {string} walletName - Nome da carteira
  * @param {number} value - Valor a pagar
+ * @param {string} [category='Contas'] - Categoria da despesa
  */
-export async function payFixedExpenseWithWallet(expenseItem, walletId, walletName, value) {
+export async function payFixedExpenseWithWallet(expenseItem, walletId, walletName, value, category = 'Contas') {
   const batch = writeBatch(db);
   const today = new Date();
 
@@ -65,7 +66,7 @@ export async function payFixedExpenseWithWallet(expenseItem, walletId, walletNam
     description: expenseItem.description,
     value: value,
     type: 'saida',
-    category: 'Contas',
+    category: category || expenseItem.category || 'Contas',
     date: today,
     walletId: walletId,
     walletName: walletName
@@ -85,8 +86,9 @@ export async function payFixedExpenseWithWallet(expenseItem, walletId, walletNam
  * @param {string|Object} cardOrCardId - ID ou objeto do cartão
  * @param {number} value - Valor a pagar
  * @param {Object} [cardData] - Dados opcionais do cartão (closingDay, dueDay)
+ * @param {string} [category='Contas'] - Categoria da despesa
  */
-export async function payFixedExpenseWithCard(expenseItem, cardOrCardId, value, cardData = null) {
+export async function payFixedExpenseWithCard(expenseItem, cardOrCardId, value, cardData = null, category = 'Contas') {
   const today = new Date();
   const cardId = typeof cardOrCardId === 'object' && cardOrCardId !== null ? cardOrCardId.id : cardOrCardId;
   const card = (typeof cardOrCardId === 'object' && cardOrCardId !== null) ? cardOrCardId : cardData;
@@ -105,9 +107,10 @@ export async function payFixedExpenseWithCard(expenseItem, cardOrCardId, value, 
     dueDate: dueDate,
     date: dueDate,
     cardId: cardId,
-    category: expenseItem.category || 'Contas',
+    category: category || expenseItem.category || 'Contas',
     status: 'aberto',
     installmentIndex: 1,
     originalTotal: value
   });
 }
+

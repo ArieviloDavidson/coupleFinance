@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { fetchWallets } from '../../api/wallets';
 import { fetchCards } from '../../api/cards';
 import { payFixedExpenseWithWallet, payFixedExpenseWithCard } from '../../api/fixedExpenses';
+import { CATEGORIES, TRANSACTION_TYPES } from '../../utils/constants';
 import CurrencyInput from '../CurrencyInput/CurrencyInput';
 import './FixedExpensesPayModal.css';
 
 const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
   const [paymentMethod, setPaymentMethod] = useState('wallet'); // 'wallet' ou 'card'
   const [selectedSourceId, setSelectedSourceId] = useState('');
+  const [category, setCategory] = useState('Contas');
 
   const [wallets, setWallets] = useState([]);
   const [cards, setCards] = useState([]);
@@ -19,6 +21,7 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
   useEffect(() => {
     if (isOpen && expenseItem) {
       setCurrentValue(expenseItem.value); // Preenche com o valor padrão
+      setCategory(expenseItem.category || 'Contas');
 
       const fetchData = async () => {
         const walletsData = await fetchWallets();
@@ -39,6 +42,10 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
 
   if (!isOpen || !expenseItem) return null;
 
+  const expenseCategories = (CATEGORIES[TRANSACTION_TYPES.SAIDA] || []).filter(
+    cat => cat !== 'Pagamento de Cartão'
+  );
+
   const handleConfirm = async () => {
     try {
       const val = Number(currentValue);
@@ -46,12 +53,12 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
       if (paymentMethod === 'wallet') {
         // --- CENÁRIO 1: PAGAMENTO VIA CARTEIRA ---
         const walletName = wallets.find(w => w.id === selectedSourceId)?.name || 'Carteira';
-        await payFixedExpenseWithWallet(expenseItem, selectedSourceId, walletName, val);
+        await payFixedExpenseWithWallet(expenseItem, selectedSourceId, walletName, val, category);
         alert(`Conta "${expenseItem.description}" paga via ${walletName}!`);
       } else {
         // --- CENÁRIO 2: PAGAMENTO VIA CARTÃO DE CRÉDITO ---
         const selectedCard = cards.find(c => c.id === selectedSourceId);
-        await payFixedExpenseWithCard(expenseItem, selectedCard || selectedSourceId, val);
+        await payFixedExpenseWithCard(expenseItem, selectedCard || selectedSourceId, val, null, category);
         alert(`Conta "${expenseItem.description}" lançada no cartão!`);
       }
 
@@ -74,6 +81,19 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
         <div className="form-group">
           <label>Despesa</label>
           <input type="text" value={expenseItem.description} disabled style={{ background: '#f0f0f0' }} />
+        </div>
+
+        <div className="form-group">
+          <label>Categoria</label>
+          <select
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            style={{ width: '100%', padding: '10px' }}
+          >
+            {expenseCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
@@ -113,7 +133,7 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
             style={{ width: '100%', padding: '10px' }}
           >
             {paymentMethod === 'wallet'
-              ? wallets.map(w => <option key={w.id} value={w.id}>{w.name} (R$ {w.currentBalance.toFixed(2)})</option>)
+              ? wallets.map(w => <option key={w.id} value={w.id}>{w.name} (R$ {Number(w.currentBalance).toFixed(2)})</option>)
               : cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
             }
           </select>
@@ -128,4 +148,4 @@ const FixedExpensePayModal = ({ isOpen, onClose, expenseItem }) => {
   );
 };
 
-export default FixedExpensePayModal;
+export default FixedExpensePayModal;
