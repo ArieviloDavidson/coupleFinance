@@ -99,8 +99,7 @@ const Budgets = () => {
       setRawTransactions(transactions);
       setRawCardPurchases(shoppingData);
 
-      // --- B1. Transações (Wallets) ---
-      let totalSpentWallet = 0;
+      // --- B1. Transações (Wallets) para categorias ---
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
       if (selectedSource === 'all' || isWalletFilter) {
         transactions.forEach(t => {
@@ -110,7 +109,6 @@ const Budgets = () => {
 
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
-              totalSpentWallet += Number(t.value || 0);
               const cat = t.category || 'Outros';
               if (spendingWalletObj[cat] !== undefined) spendingWalletObj[cat] += Number(t.value);
             }
@@ -118,8 +116,7 @@ const Budgets = () => {
         });
       }
 
-      // --- B2. Compras (Cartões) ---
-      let totalSpentCard = 0;
+      // --- B2. Compras (Cartões) para categorias ---
       const isCardFilter = sources.cards.some(c => c.id === selectedSource);
       if (selectedSource === 'all' || isCardFilter) {
         shoppingData.forEach(c => {
@@ -131,7 +128,6 @@ const Budgets = () => {
 
           if (cMonth === currentMonth) {
             if (selectedSource === 'all' || c.cardId === selectedSource) {
-              totalSpentCard += Number(c.totalValue || 0);
               const cat = c.category || 'Outros';
               if (spendingCardObj[cat] !== undefined) spendingCardObj[cat] += Number(c.totalValue);
             }
@@ -139,7 +135,30 @@ const Budgets = () => {
         });
       }
 
-      setTotalMonthExpenses(totalSpentWallet + totalSpentCard);
+      // --- B3. Total de Saídas do Mês (Card de Resumo) ---
+      // Conta apenas transações reais do mês (incluindo pagamentos de cartão), evitando duplicar com compras no cartão
+      let totalOutflow = 0;
+      if (selectedSource === 'all' || isWalletFilter) {
+        transactions.forEach(t => {
+          const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
+          if (tMonth === currentMonth) {
+            if (selectedSource === 'all' || t.walletId === selectedSource) {
+              totalOutflow += Number(t.value || 0);
+            }
+          }
+        });
+      } else if (isCardFilter) {
+        shoppingData.forEach(c => {
+          if (c.status !== 'pago') return;
+          const filterTargetDate = c.purchaseDateObj || c.dateObj;
+          const cMonth = filterTargetDate.toLocaleDateString('en-CA').slice(0, 7);
+          if (cMonth === currentMonth && c.cardId === selectedSource) {
+            totalOutflow += Number(c.totalValue || 0);
+          }
+        });
+      }
+
+      setTotalMonthExpenses(totalOutflow);
 
       // C. Monta array final
       const finalData = budgetCategories.map(cat => {
