@@ -74,23 +74,25 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(spendingObj['Lazer']).toBe(0);
   });
 
-  it('deve pular transações de "Pagamento de Cartão"', () => {
+  it('deve pular transações de "Pagamento de Cartão" e "Transferência"', () => {
     const spendingObj = {};
     CATEGORIES[TRANSACTION_TYPES.SAIDA].forEach(cat => spendingObj[cat] = 0);
 
     const transacoes = [
       { category: 'Alimentação', value: 50 },
       { category: 'Pagamento de Cartão', value: 500 },
+      { category: 'Transferência', value: 300 },
     ];
 
     transacoes.forEach(t => {
-      if (t.category === 'Pagamento de Cartão') return;
+      if (t.category === 'Pagamento de Cartão' || t.category === 'Transferência') return;
       const cat = t.category || 'Outros';
       if (spendingObj[cat] !== undefined) spendingObj[cat] += Number(t.value);
     });
 
     expect(spendingObj['Alimentação']).toBe(50);
     expect(spendingObj['Pagamento de Cartão']).toBe(0);
+    expect(spendingObj['Transferência']).toBeUndefined();
   });
 
   it('budgetCategories deve excluir Pagamento de Cartão e Outros, e incluir Pagamentos', () => {
@@ -310,7 +312,7 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(totalBudgetLimit).toBe(2300);
   });
 
-  it('deve calcular totalMonthExpenses considerando apenas transações (inclusive pagamento de cartão) na visão geral sem duplicar compras do cartão', () => {
+  it('deve calcular totalMonthExpenses considerando apenas transações (inclusive pagamento de cartão) na visão geral sem duplicar compras do cartão e ignorando transferências', () => {
     const currentMonth = '2026-05';
     const selectedSource = 'all';
     const isWalletFilter = false;
@@ -320,6 +322,7 @@ describe('Budgets — agregação de gastos por categoria', () => {
       { value: 150, dateObj: new Date('2026-05-10T12:00:00'), category: 'Alimentação', walletId: 'w1' },
       { value: 80, dateObj: new Date('2026-05-12T12:00:00'), category: 'Outros', walletId: 'w1' },
       { value: 500, dateObj: new Date('2026-05-15T12:00:00'), category: 'Pagamento de Cartão', walletId: 'w1' }, // incluída nas saídas
+      { value: 1000, dateObj: new Date('2026-05-18T12:00:00'), category: 'Transferência', walletId: 'w1' }, // ignorada (movimentação interna)
       { value: 200, dateObj: new Date('2026-04-10T12:00:00'), category: 'Alimentação', walletId: 'w1' }, // outro mês
     ];
 
@@ -331,6 +334,7 @@ describe('Budgets — agregação de gastos por categoria', () => {
     let totalOutflow = 0;
     if (selectedSource === 'all' || isWalletFilter) {
       transactions.forEach(t => {
+        if (t.category === 'Transferência') return;
         const tMonth = t.dateObj.toISOString().slice(0, 7);
         if (tMonth === currentMonth) {
           if (selectedSource === 'all' || t.walletId === selectedSource) {
@@ -348,7 +352,7 @@ describe('Budgets — agregação de gastos por categoria', () => {
       });
     }
 
-    expect(totalOutflow).toBe(730); // 150 + 80 + 500
+    expect(totalOutflow).toBe(730); // 150 + 80 + 500 (1000 de Transferência ignorado)
   });
 
   it('deve calcular totalMonthExpenses para filtro de cartão específico baseado em shoppingData pago', () => {
