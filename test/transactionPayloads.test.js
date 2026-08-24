@@ -137,6 +137,57 @@ describe('Payload: Pagamento de Lembrete via Carteira', () => {
 });
 
 // -----------------------------------------------
+// fixedExpenses.js — payFixedExpenseWithWallet / payFixedExpenseWithCard
+// -----------------------------------------------
+describe('Payload: Pagamento de Despesa Fixa via Carteira com Categoria Dinâmica', () => {
+  it('deve permitir categorias variadas como Saúde, Investimentos, Assinaturas', () => {
+    const categoriesToTest = ['Saúde', 'Investimentos', 'Assinaturas', 'Contas', 'Lazer'];
+
+    categoriesToTest.forEach(category => {
+      const payload = {
+        description: 'Plano de Saúde',
+        value: 450,
+        type: TRANSACTION_TYPES.SAIDA,
+        category: category,
+        date: new Date(),
+        walletId: 'w-123',
+        walletName: 'Nubank',
+      };
+
+      expect(payload.type).toBe('saida');
+      expect(CATEGORIES[payload.type]).toContain(payload.category);
+    });
+  });
+});
+
+describe('Payload: Pagamento de Despesa Fixa via Cartão com Categoria Dinâmica', () => {
+  it('deve permitir categorias variadas no cardsShopping', () => {
+    const categoriesToTest = ['Saúde', 'Investimentos', 'Assinaturas', 'Contas'];
+
+    categoriesToTest.forEach(category => {
+      const payload = {
+        description: 'Academia',
+        totalValue: 120,
+        installments: 1,
+        installmentValue: 120,
+        purchaseDate: new Date(),
+        dueDate: new Date(),
+        date: new Date(),
+        cardId: 'c-123',
+        category: category,
+        status: 'aberto',
+        installmentIndex: 1,
+        originalTotal: 120,
+      };
+
+      expect(payload.installments).toBe(1);
+      expect(payload.status).toBe('aberto');
+      expect(CATEGORIES[TRANSACTION_TYPES.SAIDA]).toContain(payload.category);
+    });
+  });
+});
+
+// -----------------------------------------------
 // FUTURO: Payloads com campo categoryGroup
 // Descomentar quando migrar para categorias hierárquicas
 // -----------------------------------------------

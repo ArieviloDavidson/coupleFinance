@@ -30,29 +30,35 @@ function cleanDescription(desc) {
  * @param {Array} transactions  - Todas as transações (subscribeTransactions)
  * @param {Array} cardPurchases - Compras no cartão (subscribeCardsShopping)
  * @param {string} currentMonth - Mês no formato 'YYYY-MM'
+ * @param {Array|null} [fixedExpenses] - Lista opcional de despesas fixas cadastradas
  * @returns {Set<string>}       - Set com os nomes normalizados das despesas pagas
  */
-function buildPaidExpensesSet(transactions, cardPurchases, currentMonth) {
+function buildPaidExpensesSet(transactions, cardPurchases, currentMonth, fixedExpenses = null) {
   const paidNames = new Set();
+  const fixedExpenseNames = fixedExpenses
+    ? new Set(fixedExpenses.map(e => cleanDescription(typeof e === 'string' ? e : e.description)))
+    : null;
 
   // 1. Verifica transações normais (carteira ou pagamento de cartão)
   transactions.forEach(t => {
-    if (t.category !== 'Contas' && t.category !== 'Assinaturas' && t.category !== 'Pagamento de Cartão') return;
+    const cleanDesc = cleanDescription(t.description);
+    if (fixedExpenseNames && !fixedExpenseNames.has(cleanDesc)) return;
     const tMonth = t.dateObj.toISOString().slice(0, 7);
     if (tMonth === currentMonth) {
-      paidNames.add(cleanDescription(t.description));
+      paidNames.add(cleanDesc);
     }
   });
 
   // 2. Verifica compras no cartão (cartão de crédito)
   cardPurchases.forEach(p => {
-    if (p.category !== 'Contas' && p.category !== 'Assinaturas') return;
+    const cleanDesc = cleanDescription(p.description);
+    if (fixedExpenseNames && !fixedExpenseNames.has(cleanDesc)) return;
     // Só considera paga se o status for 'pago' (independente do número de parcelas)
     if (p.status !== 'pago') return;
     const filterDate = p.dueDateObj || p.dateObj;
     const pMonth = filterDate.toISOString().slice(0, 7);
     if (pMonth === currentMonth) {
-      paidNames.add(cleanDescription(p.description));
+      paidNames.add(cleanDesc);
     }
   });
 
@@ -224,7 +230,8 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.size).toBe(0);
   });
 
-  it('não deve marcar transações de outras categorias como despesa paga', () => {
+  it('não deve marcar transações não cadastradas em despesas fixas como despesa paga', () => {
+    const fixedExpenses = ['Internet', 'Energia'];
     const transactions = [
       makeTransaction('Supermercado', 'Alimentação', '2026-05-05'),
       makeTransaction('Uber', 'Transporte', '2026-05-05'),
@@ -233,9 +240,45 @@ describe('Lógica de Despesas Fixas Pagas', () => {
       makeCardPurchase('Notebook', 'Eletrônicos', '2026-05-15', { status: 'pago' }),
     ];
 
-    const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH);
+    const paid = buildPaidExpensesSet(transactions, cardPurchases, CURRENT_MONTH, fixedExpenses);
 
     expect(paid.size).toBe(0);
+  });
+
+  it('deve detectar despesa fixa paga com categoria Saúde (ex: Plano de Saúde)', () => {
+    const fixedExpenses = ['Plano de Saúde'];
+    const transactions = [
+      makeTransaction('Plano de Saúde', 'Saúde', '2026-05-05'),
+    ];
+
+    const paid = buildPaidExpensesSet(transactions, [], CURRENT_MONTH, fixedExpenses);
+
+    expect(paid.has('plano de saúde')).toBe(true);
+    expect(paid.size).toBe(1);
+  });
+
+  it('deve detectar despesa fixa paga com categoria Investimentos (ex: Aporte Mensal)', () => {
+    const fixedExpenses = ['Aporte Mensal'];
+    const transactions = [
+      makeTransaction('Aporte Mensal', 'Investimentos', '2026-05-02'),
+    ];
+
+    const paid = buildPaidExpensesSet(transactions, [], CURRENT_MONTH, fixedExpenses);
+
+    expect(paid.has('aporte mensal')).toBe(true);
+    expect(paid.size).toBe(1);
+  });
+
+  it('deve detectar despesa fixa paga no cartão com categoria Saúde (status pago)', () => {
+    const fixedExpenses = ['Academia'];
+    const cardPurchases = [
+      makeCardPurchase('Academia', 'Saúde', '2026-05-10', { status: 'pago' }),
+    ];
+
+    const paid = buildPaidExpensesSet([], cardPurchases, CURRENT_MONTH, fixedExpenses);
+
+    expect(paid.has('academia')).toBe(true);
+    expect(paid.size).toBe(1);
   });
 
   it('não deve duplicar quando mesma despesa aparece em transação e cartão', () => {
@@ -251,6 +294,7 @@ describe('Lógica de Despesas Fixas Pagas', () => {
     expect(paid.has('internet')).toBe(true);
     expect(paid.size).toBe(1); // Set não duplica
   });
+
 
   it('deve retornar vazio quando não há transações nem compras', () => {
     const paid = buildPaidExpensesSet([], [], CURRENT_MONTH);
