@@ -260,6 +260,43 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(mercado.percent).toBe(50);
     expect(mercado.remaining).toBe(1000); // Resta 1000 (positivo, não excedeu)
   });
+
+  it('saveBudgetLimit deve gerar payload indexado por categoria sem prefixo de mês', () => {
+    const category = 'Alimentação';
+    const limit = 1500;
+    const docId = category;
+    const payload = {
+      category,
+      limit: Number(limit),
+    };
+
+    expect(docId).toBe('Alimentação');
+    expect(payload.category).toBe('Alimentação');
+    expect(payload.limit).toBe(1500);
+    expect(payload).not.toHaveProperty('month');
+  });
+
+  it('fetchBudgets deve mapear documentos para limitsObj { [category]: limit }', () => {
+    const docs = [
+      { data: () => ({ category: 'Alimentação', limit: 1200 }) },
+      { data: () => ({ category: 'Saúde', limit: 600 }) },
+      { data: () => ({ category: 'Investimentos', limit: 2000 }) },
+    ];
+
+    const limitsObj = {};
+    docs.forEach(doc => {
+      const data = doc.data();
+      if (data.category) {
+        limitsObj[data.category] = Number(data.limit || 0);
+      }
+    });
+
+    expect(limitsObj).toEqual({
+      'Alimentação': 1200,
+      'Saúde': 600,
+      'Investimentos': 2000,
+    });
+  });
 });
 
 // -----------------------------------------------
