@@ -297,6 +297,63 @@ describe('Budgets — agregação de gastos por categoria', () => {
       'Investimentos': 2000,
     });
   });
+
+  it('deve calcular totalBudgetLimit como a soma de todas as metas definidas', () => {
+    const spendingData = [
+      { name: 'Alimentação', limit: 1200, spent: 800 },
+      { name: 'Contas', limit: 800, spent: 750 },
+      { name: 'Saúde', limit: 300, spent: 100 },
+      { name: 'Lazer', limit: 0, spent: 50 },
+    ];
+
+    const totalBudgetLimit = spendingData.reduce((acc, item) => acc + (item.limit || 0), 0);
+    expect(totalBudgetLimit).toBe(2300);
+  });
+
+  it('deve calcular totalMonthExpenses considerando carteiras e compras pagas no cartão respeitando filtros', () => {
+    const currentMonth = '2026-05';
+    const selectedSource = 'all';
+
+    const transactions = [
+      { value: 150, dateObj: new Date('2026-05-10T12:00:00'), category: 'Alimentação', walletId: 'w1' },
+      { value: 80, dateObj: new Date('2026-05-12T12:00:00'), category: 'Outros', walletId: 'w1' },
+      { value: 500, dateObj: new Date('2026-05-15T12:00:00'), category: 'Pagamento de Cartão', walletId: 'w1' }, // ignorada
+      { value: 200, dateObj: new Date('2026-04-10T12:00:00'), category: 'Alimentação', walletId: 'w1' }, // outro mês
+    ];
+
+    const cardPurchases = [
+      { totalValue: 300, purchaseDateObj: new Date('2026-05-02T12:00:00'), status: 'pago', cardId: 'c1' },
+      { totalValue: 450, purchaseDateObj: new Date('2026-05-05T12:00:00'), status: 'aberto', cardId: 'c1' }, // aberta, não entra
+      { totalValue: 100, purchaseDateObj: new Date('2026-06-02T12:00:00'), status: 'pago', cardId: 'c1' }, // outro mês
+    ];
+
+    let totalSpentWallet = 0;
+    transactions.forEach(t => {
+      if (t.category === 'Pagamento de Cartão') return;
+      const tMonth = t.dateObj.toISOString().slice(0, 7);
+      if (tMonth === currentMonth) {
+        if (selectedSource === 'all' || t.walletId === selectedSource) {
+          totalSpentWallet += Number(t.value || 0);
+        }
+      }
+    });
+
+    let totalSpentCard = 0;
+    cardPurchases.forEach(c => {
+      if (c.status !== 'pago') return;
+      const cMonth = c.purchaseDateObj.toISOString().slice(0, 7);
+      if (cMonth === currentMonth) {
+        if (selectedSource === 'all' || c.cardId === selectedSource) {
+          totalSpentCard += Number(c.totalValue || 0);
+        }
+      }
+    });
+
+    const totalMonthExpenses = totalSpentWallet + totalSpentCard;
+    expect(totalSpentWallet).toBe(230); // 150 + 80
+    expect(totalSpentCard).toBe(300);   // 300 pago
+    expect(totalMonthExpenses).toBe(530);
+  });
 });
 
 // -----------------------------------------------
