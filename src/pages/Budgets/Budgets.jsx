@@ -6,6 +6,7 @@ import { fetchBudgets, saveBudgetLimit } from '../../api/budgets';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import CategoryExpensesModal from '../../components/CategoryExpensesModal/CategoryExpensesModal';
+import DashboardCard from '../../components/DashboardCard/DashboardCard';
 import './Budgets.css';
 import '../../shared.css';
 
@@ -44,6 +45,7 @@ const Budgets = () => {
   const [sources, setSources] = useState({ wallets: [], cards: [] });
   const [budgetLimits, setBudgetLimits] = useState({});
   const [spendingData, setSpendingData] = useState([]);
+  const [totalMonthExpenses, setTotalMonthExpenses] = useState(0);
   const [rawTransactions, setRawTransactions] = useState([]);
   const [rawCardPurchases, setRawCardPurchases] = useState([]);
 
@@ -98,6 +100,7 @@ const Budgets = () => {
       setRawCardPurchases(shoppingData);
 
       // --- B1. Transações (Wallets) ---
+      let totalSpentWallet = 0;
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
       if (selectedSource === 'all' || isWalletFilter) {
         transactions.forEach(t => {
@@ -107,6 +110,7 @@ const Budgets = () => {
 
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
+              totalSpentWallet += Number(t.value || 0);
               const cat = t.category || 'Outros';
               if (spendingWalletObj[cat] !== undefined) spendingWalletObj[cat] += Number(t.value);
             }
@@ -115,6 +119,7 @@ const Budgets = () => {
       }
 
       // --- B2. Compras (Cartões) ---
+      let totalSpentCard = 0;
       const isCardFilter = sources.cards.some(c => c.id === selectedSource);
       if (selectedSource === 'all' || isCardFilter) {
         shoppingData.forEach(c => {
@@ -126,12 +131,15 @@ const Budgets = () => {
 
           if (cMonth === currentMonth) {
             if (selectedSource === 'all' || c.cardId === selectedSource) {
+              totalSpentCard += Number(c.totalValue || 0);
               const cat = c.category || 'Outros';
               if (spendingCardObj[cat] !== undefined) spendingCardObj[cat] += Number(c.totalValue);
             }
           }
         });
       }
+
+      setTotalMonthExpenses(totalSpentWallet + totalSpentCard);
 
       // C. Monta array final
       const finalData = budgetCategories.map(cat => {
@@ -204,12 +212,30 @@ const Budgets = () => {
     setIsCategoryModalOpen(true);
   };
 
+  const totalBudgetLimit = spendingData.reduce((acc, item) => acc + (item.limit || 0), 0);
+
   return (
     <div className="budgets-container container">
       <div className="budgets-header header-container">
         <div className="header-left">
           <h1 className="page-title">Metas e Orçamentos</h1>
           <p className="page-subtitle">Planeje seus limites mensais</p>
+        </div>
+
+        <div className="header-cards">
+          <DashboardCard
+            label="Total das Metas"
+            value={totalBudgetLimit}
+            variant="prediction"
+            valueStyle={{ color: '#2e4761ff' }}
+          />
+
+          <DashboardCard
+            label="Total de Saídas"
+            value={totalMonthExpenses}
+            variant="forecast"
+            className={totalBudgetLimit > 0 && totalMonthExpenses > totalBudgetLimit ? 'forecast-negative' : 'forecast-positive'}
+          />
         </div>
 
         <div className="budgets-filters">
@@ -233,6 +259,7 @@ const Budgets = () => {
           </select>
         </div>
       </div>
+
 
       <div className="budgets-content page-container">
         <div className="budgets-chart-section">

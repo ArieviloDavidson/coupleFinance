@@ -11,9 +11,38 @@
   gap: 20px;
 }
 
+.header-cards {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
 .budgets-filters {
   display: flex;
   gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .budgets-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-cards {
+    justify-content: stretch;
+  }
+
+  .header-cards .dashboard-card {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .budgets-filters {
+    flex-direction: column;
+    width: 100%;
+  }
 }
 
 /* Gráfico */
