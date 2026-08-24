@@ -103,7 +103,7 @@ const Budgets = () => {
       const isWalletFilter = sources.wallets.some(w => w.id === selectedSource);
       if (selectedSource === 'all' || isWalletFilter) {
         transactions.forEach(t => {
-          if (t.category === 'Pagamento de Cartão') return;
+          if (t.category === 'Pagamento de Cartão' || t.category === 'Transferência') return;
 
           const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
 
@@ -136,10 +136,12 @@ const Budgets = () => {
       }
 
       // --- B3. Total de Saídas do Mês (Card de Resumo) ---
-      // Conta apenas transações reais do mês (incluindo pagamentos de cartão), evitando duplicar com compras no cartão
+      // Conta apenas transações reais do mês (incluindo pagamentos de cartão, mas excluindo transferências internas), evitando duplicar com compras no cartão
       let totalOutflow = 0;
       if (selectedSource === 'all' || isWalletFilter) {
         transactions.forEach(t => {
+          if (t.category === 'Transferência') return;
+
           const tMonth = t.dateObj.toLocaleDateString('en-CA').slice(0, 7);
           if (tMonth === currentMonth) {
             if (selectedSource === 'all' || t.walletId === selectedSource) {
