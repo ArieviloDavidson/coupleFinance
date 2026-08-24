@@ -93,6 +93,16 @@ describe('Budgets — agregação de gastos por categoria', () => {
     expect(spendingObj['Pagamento de Cartão']).toBe(0);
   });
 
+  it('budgetCategories deve excluir Pagamento de Cartão e Outros, e incluir Pagamentos', () => {
+    const budgetCategories = CATEGORIES[TRANSACTION_TYPES.SAIDA].filter(
+      cat => cat !== 'Pagamento de Cartão' && cat !== 'Outros'
+    );
+    expect(budgetCategories).not.toContain('Pagamento de Cartão');
+    expect(budgetCategories).not.toContain('Outros');
+    expect(budgetCategories).toContain('Pagamentos');
+    expect(budgetCategories).toContain('Alimentação');
+  });
+
   it('deve agregar compras de cartão no orçamento usando a data da compra (purchaseDateObj) e apenas status pago', () => {
     const spendingCardObj = { 'Mercado': 0, 'Lazer': 0, 'Alimentação': 0 };
     const shoppingData = [

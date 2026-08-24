@@ -53,6 +53,7 @@ describe('CATEGORIES', () => {
       'Renda Extra',
       'Investimentos (Resgate)',
       'Presente',
+      'Pagamentos',
       'Outros',
     ]);
   });
@@ -68,6 +69,7 @@ describe('CATEGORIES', () => {
       'Transporte',
       'Saúde',
       'Eletrônicos',
+      'Pagamentos',
       'Pagamento de Cartão',
       'Assinaturas',
       'Outros',
