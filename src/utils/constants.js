@@ -9,6 +9,7 @@ export const CATEGORIES = {
         'Renda Extra',
         'Investimentos (Resgate)',
         'Presente',
+        'Pagamentos',
         'Outros' // Mantendo 'Outros' como padrão
     ],
     [TRANSACTION_TYPES.SAIDA]: [
@@ -20,6 +21,7 @@ export const CATEGORIES = {
         'Transporte',          // Uber, Gasolina, Ônibus
         'Saúde',               // Farmácia, Médicos
         'Eletrônicos',         // Gadgets, Celulares (Veio do CardShoppingForm)
+        'Pagamentos',          // Boletos, Transferências de pagamento
         'Pagamento de Cartão', // Para categorizar pagamentos de fatura
         'Assinaturas',         // Serviços de AudioVisual
         'Outros',

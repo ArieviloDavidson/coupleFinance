@@ -79,8 +79,10 @@ const Budgets = () => {
       setBudgetLimits(limitsObj);
 
       // B. Busca Gastos Reais
-      // Filtra a categoria genérica, pois o cartão entra diretamente
-      const budgetCategories = CATEGORIES[TRANSACTION_TYPES.SAIDA].filter(cat => cat !== 'Pagamento de Cartão');
+      // Filtra Pagamento de Cartão (cartão entra diretamente) e Outros (exceções não orçadas)
+      const budgetCategories = CATEGORIES[TRANSACTION_TYPES.SAIDA].filter(
+        cat => cat !== 'Pagamento de Cartão' && cat !== 'Outros'
+      );
 
       const spendingWalletObj = {};
       const spendingCardObj = {};
