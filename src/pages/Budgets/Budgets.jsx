@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchWallets } from '../../api/wallets';
 import { fetchCards, fetchCardsShopping } from '../../api/cards';
 import { fetchExpenseTransactions } from '../../api/transactions';
-import { fetchBudgetsByMonth, saveBudgetLimit } from '../../api/budgets';
+import { fetchBudgets, saveBudgetLimit } from '../../api/budgets';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import CurrencyInput from '../../components/CurrencyInput/CurrencyInput';
 import CategoryExpensesModal from '../../components/CategoryExpensesModal/CategoryExpensesModal';
@@ -75,7 +75,7 @@ const Budgets = () => {
       setLoading(true);
 
       // A. Busca Limites
-      const limitsObj = await fetchBudgetsByMonth(currentMonth);
+      const limitsObj = await fetchBudgets();
       setBudgetLimits(limitsObj);
 
       // B. Busca Gastos Reais
@@ -170,7 +170,7 @@ const Budgets = () => {
     if (!editingCategory) return;
 
     try {
-      await saveBudgetLimit(currentMonth, editingCategory, newLimit);
+      await saveBudgetLimit(editingCategory, newLimit);
 
       setBudgetLimits(prev => ({ ...prev, [editingCategory]: Number(newLimit) }));
       setSpendingData(prev => prev.map(item => {
@@ -314,7 +314,7 @@ const Budgets = () => {
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsEditModalOpen(false); }}>
           <div className="modal-content" style={{ maxWidth: '300px' }}>
             <h3>Meta: {editingCategory}</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>Defina o teto de gastos para {currentMonth}</p>
+            <p style={{ fontSize: '0.9rem', color: '#666' }}>Defina o teto de gastos mensal</p>
 
             <CurrencyInput
               value={newLimit}
