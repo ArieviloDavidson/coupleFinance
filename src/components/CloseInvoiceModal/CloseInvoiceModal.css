@@ -26,6 +26,18 @@
   background-color: #ffffff;
 }
 
+.select-card-prompt {
+  margin-top: 18px;
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  padding: 24px 16px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .invoice-summary-box {
   margin-top: 18px;
   display: flex;

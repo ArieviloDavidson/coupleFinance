@@ -9,8 +9,8 @@ const CloseInvoiceModal = ({ isOpen, onClose, cards, shoppingList, initialCardId
     if (isOpen) {
       if (initialCardId && cards.some(c => c.id === initialCardId)) {
         setSelectedCardId(initialCardId);
-      } else if (cards.length > 0) {
-        setSelectedCardId(cards[0].id);
+      } else {
+        setSelectedCardId('');
       }
     }
   }, [isOpen, initialCardId, cards]);
@@ -21,27 +21,30 @@ const CloseInvoiceModal = ({ isOpen, onClose, cards, shoppingList, initialCardId
 
   const invoiceData = useMemo(() => {
     if (!selectedCard) {
-      return { purchases: [], closingDate: null, dueDate: null, total: 0, isPastClosing: false };
+      return { purchases: [], closingDate: null, dueDate: null, total: 0 };
     }
 
     const closingDay = Number(selectedCard.closingDay);
     const dueDay = Number(selectedCard.dueDay);
     const today = new Date();
 
-    // Se hoje < dia de fechamento: fatura fecha no dia closingDay deste mês.
-    // Se hoje >= dia de fechamento: fatura fechou no dia closingDay deste mês.
-    const isPastClosing = today.getDate() >= closingDay;
-    const closingDate = new Date(today.getFullYear(), today.getMonth(), closingDay, 23, 59, 59, 999);
-    const dueDate = calculateDueDate(closingDate, closingDay, dueDay);
-    const dueDateLimit = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate(), 23, 59, 59, 999);
+    // Se hoje < dia de fechamento: fatura atual fecha no dia closingDay deste mês.
+    // Se hoje >= dia de fechamento: o fechamento deste mês já passou, então a fatura atual fecha no próximo mês.
+    const closingMonth = today.getDate() < closingDay ? today.getMonth() : today.getMonth() + 1;
+    const closingDate = new Date(today.getFullYear(), closingMonth, closingDay, 23, 59, 59, 999);
+    const dueDate = calculateDueDate(today, closingDay, dueDay);
 
-    // Filtra as compras em aberto deste cartão que vencem até o vencimento desta fatura
+    const targetMonthKey = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}`;
+
+    // Filtra as compras em aberto deste cartão que pertencem estritamente a esta fatura (mesmo mês/ano de vencimento)
     const purchases = shoppingList.filter(item => {
       if (item.cardId !== selectedCard.id) return false;
       if (item.status === 'pago') return false;
 
       const itemDueDate = item.dueDateObj || item.dateObj;
-      return itemDueDate && itemDueDate <= dueDateLimit;
+      if (!itemDueDate) return false;
+      const itemMonthKey = `${itemDueDate.getFullYear()}-${String(itemDueDate.getMonth() + 1).padStart(2, '0')}`;
+      return itemMonthKey === targetMonthKey;
     });
 
     const total = purchases.reduce((sum, item) => sum + Number(item.totalValue), 0);
@@ -50,8 +53,7 @@ const CloseInvoiceModal = ({ isOpen, onClose, cards, shoppingList, initialCardId
       purchases,
       closingDate,
       dueDate,
-      total,
-      isPastClosing
+      total
     };
   }, [selectedCard, shoppingList]);
 
@@ -79,6 +81,7 @@ const CloseInvoiceModal = ({ isOpen, onClose, cards, shoppingList, initialCardId
               onChange={(e) => setSelectedCardId(e.target.value)}
               className="invoice-card-select"
             >
+              <option value="">-- Selecione seu Cartão --</option>
               {cards.map(card => (
                 <option key={card.id} value={card.id}>
                   {card.name} (Fecha dia {card.closingDay} | Vence dia {card.dueDay})
@@ -87,15 +90,19 @@ const CloseInvoiceModal = ({ isOpen, onClose, cards, shoppingList, initialCardId
             </select>
           </div>
 
+          {!selectedCard && (
+            <div className="select-card-prompt">
+              💳 Selecione um cartão acima para calcular e visualizar a fatura.
+            </div>
+          )}
+
           {selectedCard && (
             <div className="invoice-summary-box">
               <div className="invoice-dates-info">
                 <div className="info-pill">
                   <span className="info-label">Fechamento da Fatura</span>
                   <strong>{invoiceData.closingDate?.toLocaleDateString('pt-BR')}</strong>
-                  <small className="info-status">
-                    {invoiceData.isPastClosing ? '(Fatura já fechada)' : '(Fechamento próximo)'}
-                  </small>
+                  <small className="info-status">(Fatura Atual)</small>
                 </div>
                 <div className="info-pill">
                   <span className="info-label">Vencimento</span>
