@@ -16,6 +16,7 @@ import '../../shared.css';
 import CardForm from '../../components/CardForm/CardForm';
 import CardShoppingForm from '../../components/CardShoppingForm/CardShoppingForm';
 import PayOffModal from '../../components/PayOffModal/PayOffModal';
+import CloseInvoiceModal from '../../components/CloseInvoiceModal/CloseInvoiceModal';
 
 const getMonthKey = (date) => {
   const d = date instanceof Date ? date : new Date(date);
@@ -52,6 +53,7 @@ const ListCards = ({ initialCardFilter }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
+  const [isCloseInvoiceModalOpen, setIsCloseInvoiceModalOpen] = useState(false);
   const [payOffModalOpen, setPayOffModalOpen] = useState(false);
   const [selectedPurchaseToPay, setSelectedPurchaseToPay] = useState(null);
 
@@ -258,6 +260,12 @@ const ListCards = ({ initialCardFilter }) => {
     setPayOffModalOpen(true);
   };
 
+  const handleCloseInvoiceProceed = (purchases) => {
+    setBatchPurchaseItems(purchases);
+    setSelectedPurchaseToPay(null);
+    setPayOffModalOpen(true);
+  };
+
   const processBatchPayment = async (purchases, walletId, walletName) => {
     try {
       await payMultipleCardPurchases(purchases, walletId, walletName);
@@ -306,37 +314,45 @@ const ListCards = ({ initialCardFilter }) => {
   return (
     <div className="cards-wrapper container">
       <div className="header-actions header-container">
-        <div className="header-left">
-          <h1 className="page-title">Meus Cartões</h1>
-          <p className="page-subtitle">Gestão de cartões e faturas</p>
-        </div>
-        <div className="header-buttons">
-          <button className="btn-new-card btn" onClick={() => setIsModalOpen(true)}>
-            + Novo Cartão
-          </button>
-          <button className="btn-shopping btn" onClick={() => setIsShoppingModalOpen(true)}>
-            + Compra Crédito
-          </button>
-          {/* NOVO: Filtro de Cartão */}
-          <select
-            value={selectedCardFilter}
-            onChange={e => setSelectedCardFilter(e.target.value)}
-            className="filter-input"
-          >
-            <option value="">Todos os Cartões</option>
-            {cards.map(card => (
-              <option key={card.id} value={card.id}>
-                {card.name}
-              </option>
-            ))}
-          </select>
-
-          {/* NOVO: Filtro de Mês */}
-          <div className="month-nav">
-            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
-            <span className="month-label">{formatMonthLabel(currentMonth)}</span>
-            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+        <div className="header-left-section">
+          <div className="header-left">
+            <h1 className="page-title">Meus Cartões</h1>
+            <p className="page-subtitle">Gestão de cartões e faturas</p>
           </div>
+          <div className="header-buttons">
+            <button className="btn-new-card btn" onClick={() => setIsModalOpen(true)}>
+              + Novo Cartão
+            </button>
+            <button className="btn-shopping btn" onClick={() => setIsShoppingModalOpen(true)}>
+              + Compra Crédito
+            </button>
+            {/* NOVO: Filtro de Cartão */}
+            <select
+              value={selectedCardFilter}
+              onChange={e => setSelectedCardFilter(e.target.value)}
+              className="filter-input"
+            >
+              <option value="">Todos os Cartões</option>
+              {cards.map(card => (
+                <option key={card.id} value={card.id}>
+                  {card.name}
+                </option>
+              ))}
+            </select>
+
+            {/* NOVO: Filtro de Mês */}
+            <div className="month-nav">
+              <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+              <span className="month-label">{formatMonthLabel(currentMonth)}</span>
+              <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="header-right-section">
+          <button className="btn-close-invoice btn" onClick={() => setIsCloseInvoiceModalOpen(true)}>
+            🧾 Fechar Fatura
+          </button>
         </div>
       </div>
 
@@ -563,6 +579,14 @@ const ListCards = ({ initialCardFilter }) => {
         onConfirm={handlePayOffConfirm}
         purchaseItem={selectedPurchaseToPay}
         purchaseItems={batchPurchaseItems}
+      />
+      <CloseInvoiceModal
+        isOpen={isCloseInvoiceModalOpen}
+        onClose={() => setIsCloseInvoiceModalOpen(false)}
+        cards={cards}
+        shoppingList={shoppingList}
+        initialCardId={selectedCardFilter}
+        onProceedToPay={handleCloseInvoiceProceed}
       />
 
       {/* Modal Editar Limite */}
