@@ -246,13 +246,13 @@ const ListCards = ({ initialCardFilter }) => {
   };
 
   const getSelectedTotal = () => {
-    return filteredShoppingList
+    return shoppingList
       .filter(item => selectedPurchases.has(item.id))
       .reduce((sum, item) => sum + Number(item.totalValue), 0);
   };
 
   const openBatchPayModal = () => {
-    const items = filteredShoppingList.filter(item => selectedPurchases.has(item.id));
+    const items = shoppingList.filter(item => selectedPurchases.has(item.id));
     setBatchPurchaseItems(items);
     setSelectedPurchaseToPay(null);
     setPayOffModalOpen(true);
@@ -435,7 +435,7 @@ const ListCards = ({ initialCardFilter }) => {
             </div>
           </div>
 
-          {unpaidCount > 1 && (
+          {(unpaidCount > 1 || batchSelectMode || selectedPurchases.size > 0) && (
             <button
               className={`batch-select-btn ${batchSelectMode ? 'active' : ''}`}
               onClick={toggleBatchSelectMode}
