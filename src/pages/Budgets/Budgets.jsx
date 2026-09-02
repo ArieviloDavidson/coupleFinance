@@ -253,7 +253,7 @@ const Budgets = () => {
             label="Total de Saídas"
             value={totalMonthExpenses}
             variant="forecast"
-            className={totalBudgetLimit > 0 && totalMonthExpenses > totalBudgetLimit ? 'forecast-negative' : 'forecast-positive'}
+            className="forecast-negative"
           />
         </div>
 
