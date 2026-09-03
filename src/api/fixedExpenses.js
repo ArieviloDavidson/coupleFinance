@@ -9,7 +9,8 @@ import {
   deleteDoc,
   doc,
   writeBatch,
-  increment
+  increment,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { COLLECTIONS } from '../utils/constants';
@@ -29,14 +30,28 @@ export function subscribeFixedExpenses(callback) {
 
 /**
  * Adiciona uma nova despesa fixa.
- * @param {Object} data - { description, value }
+ * @param {Object} data - { description, value, dueDay }
  */
 export async function addFixedExpense(data) {
   return addDoc(collection(db, COLLECTIONS.FIXED_EXPENSES), {
     description: data.description,
     value: Number(data.value),
+    dueDay: data.dueDay ? Number(data.dueDay) : null,
     source: 'manual'
   });
+}
+
+/**
+ * Atualiza uma despesa fixa existente (descrição, valor e/ou dia de vencimento).
+ * @param {string} id - ID da despesa fixa
+ * @param {Object} data - { description, value, dueDay }
+ */
+export async function updateFixedExpense(id, data) {
+  const updates = {};
+  if (data.description !== undefined) updates.description = data.description.trim();
+  if (data.value !== undefined) updates.value = Number(data.value);
+  if (data.dueDay !== undefined) updates.dueDay = data.dueDay ? Number(data.dueDay) : null;
+  return updateDoc(doc(db, COLLECTIONS.FIXED_EXPENSES, id), updates);
 }
 
 /**

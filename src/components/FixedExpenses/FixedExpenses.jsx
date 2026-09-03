@@ -1,7 +1,7 @@
 // BASIC
 import React, { useState, useEffect } from 'react';
 // API
-import { subscribeFixedExpenses, addFixedExpense, removeFixedExpense } from '../../api/fixedExpenses';
+import { subscribeFixedExpenses, addFixedExpense, updateFixedExpense, removeFixedExpense } from '../../api/fixedExpenses';
 import { fetchExpenseTransactions } from '../../api/transactions';
 import { fetchCardsShopping } from '../../api/cards';
 // COMPONENTS
@@ -21,17 +21,40 @@ const cleanDescription = (desc) => {
     .toLowerCase();
 };
 
+// Retorna o status de urgência com base no dia de vencimento e se já foi pago no mês
+const getFixedExpenseStatus = (dueDay, isPaid) => {
+  if (isPaid) return 'completed';
+  if (!dueDay || isNaN(Number(dueDay))) return null;
+
+  const today = new Date();
+  const currentDay = today.getDate();
+  const due = Number(dueDay);
+
+  const diffDays = due - currentDay;
+
+  if (diffDays < 0) return 'overdue';
+  if (diffDays <= 3) return 'soon';
+  return 'future';
+};
+
 const FixedExpenses = ({ onNavigate }) => {
   // Estado das despesas fixas
   const [expenses, setExpenses] = useState([]);
   // Estado do novo item
-  const [newItem, setNewItem] = useState({ description: '', value: '' });
+  const [newItem, setNewItem] = useState({ description: '', value: '', dueDay: '' });
   // Estado para controlar o modal de pagamento
   const [payModalOpen, setPayModalOpen] = useState(false);
   // Estado para rastrear despesas já pagas no mês atual
   const [paidExpenses, setPaidExpenses] = useState(new Set());
-  // Estado para selecionar a despesa
+  // Estado para selecionar a despesa para pagamento
   const [selectedExpense, setSelectedExpense] = useState(null);
+
+  // Estados para edição
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editDescription, setEditDescription] = useState('');
+  const [editValue, setEditValue] = useState('');
+  const [editDueDay, setEditDueDay] = useState('');
 
   // Busca as despesas fixas
   useEffect(() => {
@@ -91,17 +114,45 @@ const FixedExpenses = ({ onNavigate }) => {
 
     try {
       await addFixedExpense(newItem);
-      setNewItem({ description: '', value: '' });
+      setNewItem({ description: '', value: '', dueDay: '' });
     } catch (error) {
       console.error("Erro ao adicionar:", error);
     }
   };
 
   const handleDelete = async (id) => {
+    if (window.confirm("Remover esta despesa fixa?")) {
+      try {
+        await removeFixedExpense(id);
+      } catch (error) {
+        console.error("Erro ao deletar:", error);
+      }
+    }
+  };
+
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setEditDescription(item.description);
+    setEditValue(Number(item.value) || '');
+    setEditDueDay(item.dueDay ? String(item.dueDay) : '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingItem || !editDescription || editValue === '') return;
+
     try {
-      await removeFixedExpense(id);
+      await updateFixedExpense(editingItem.id, {
+        description: editDescription,
+        value: editValue,
+        dueDay: editDueDay ? Number(editDueDay) : null
+      });
+      setIsEditModalOpen(false);
+      setEditingItem(null);
     } catch (error) {
-      console.error("Erro ao deletar:", error);
+      console.error("Erro ao atualizar despesa fixa:", error);
+      alert("Erro ao salvar alterações na despesa fixa.");
     }
   };
 
@@ -134,17 +185,43 @@ const FixedExpenses = ({ onNavigate }) => {
       <div className="fixed-list">
         {expenses.map(item => {
           const isPaid = paidExpenses.has(cleanDescription(item.description));
+          const status = getFixedExpenseStatus(item.dueDay, isPaid);
+
           return (
             <div key={item.id} className={`fixed-item ${isPaid ? 'expense-paid' : ''}`}>
               <div className="fixed-info">
+                {status && (
+                  <span
+                    className={`dot-status dot-${status}`}
+                    title={
+                      status === 'completed'
+                        ? 'Despesa paga este mês'
+                        : status === 'overdue'
+                        ? `Vencida no dia ${item.dueDay}`
+                        : status === 'soon'
+                        ? `Vence em breve (dia ${item.dueDay})`
+                        : `Vence no dia ${item.dueDay}`
+                    }
+                  />
+                )}
                 {item.source === 'card' && <span className="card-source-badge" title="Vinculada ao cartão">💳</span>}
-                <span>{item.description}</span>
+                <span className="fixed-description-text">{item.description}</span>
+                {item.dueDay && <small className="fixed-due-tag">Dia {item.dueDay}</small>}
               </div>
 
               <div className="fixed-item-right">
                 <strong>
                   {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </strong>
+
+                {/* BOTÃO EDITAR */}
+                <button
+                  className="btn-edit-fixed"
+                  onClick={() => openEditModal(item)}
+                  title="Editar despesa fixa"
+                >
+                  ✎
+                </button>
 
                 {/* BOTÃO GERAR/PAGAR */}
                 <button
@@ -155,7 +232,7 @@ const FixedExpenses = ({ onNavigate }) => {
                   ▶
                 </button>
 
-                <button onClick={() => handleDelete(item.id)} className="btn-remove-fixed">&times;</button>
+                <button onClick={() => handleDelete(item.id)} className="btn-remove-fixed" title="Excluir despesa">&times;</button>
               </div>
             </div>
           );
@@ -165,7 +242,7 @@ const FixedExpenses = ({ onNavigate }) => {
       <form onSubmit={handleAdd} className="fixed-form">
         <input
           type="text"
-          placeholder="Nova despesa (ex: Internet)"
+          placeholder="Nova despesa"
           value={newItem.description}
           onChange={e => setNewItem({ ...newItem, description: e.target.value })}
         />
@@ -174,15 +251,85 @@ const FixedExpenses = ({ onNavigate }) => {
           onChange={e => setNewItem({ ...newItem, value: e.target.value })}
           placeholder="R$"
         />
-        <button type="submit">+</button>
+        <input
+          type="number"
+          min="1"
+          max="31"
+          placeholder="Dia"
+          value={newItem.dueDay}
+          onChange={e => setNewItem({ ...newItem, dueDay: e.target.value })}
+          className="fixed-day-input"
+          title="Dia de vencimento (opcional)"
+        />
+        <button type="submit" title="Adicionar">+</button>
       </form>
 
-      {/* RENDERIZA O MODAL */}
+      {/* MODAL DE PAGAMENTO */}
       <FixedExpensePayModal
         isOpen={payModalOpen}
         onClose={() => setPayModalOpen(false)}
         expenseItem={selectedExpense}
       />
+
+      {/* MODAL DE EDIÇÃO */}
+      {isEditModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content edit-fixed-expense-modal">
+            <div className="modal-header">
+              <h3>Editar Despesa Fixa</h3>
+              <button className="close-btn" onClick={() => setIsEditModalOpen(false)}>&times;</button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="edit-fixed-expense-form">
+              <div className="form-group">
+                <label>Nome / Descrição</label>
+                <input
+                  type="text"
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  placeholder="Nome da despesa"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Valor (R$)</label>
+                <CurrencyInput
+                  value={editValue}
+                  onChange={e => setEditValue(e.target.value)}
+                  placeholder="R$ 0,00"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Dia de Vencimento (Opcional)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={editDueDay}
+                  onChange={e => setEditDueDay(e.target.value)}
+                  placeholder="Ex: 15 (opcional)"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="save-btn">
+                  Salvar Alterações
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
