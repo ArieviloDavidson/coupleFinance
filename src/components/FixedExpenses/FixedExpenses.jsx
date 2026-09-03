@@ -156,7 +156,10 @@ const FixedExpenses = ({ onNavigate }) => {
     }
   };
 
-  const totalPredicted = expenses.reduce((acc, item) => acc + (item.value || 0), 0);
+  const totalPredicted = expenses.reduce((acc, item) => acc + (Number(item.value) || 0), 0);
+  const totalPending = expenses
+    .filter(item => !paidExpenses.has(cleanDescription(item.description)))
+    .reduce((acc, item) => acc + (Number(item.value) || 0), 0);
 
   // Abre o modal para o item específico ou redireciona para Cartões
   const openPayModal = (item) => {
@@ -174,11 +177,19 @@ const FixedExpenses = ({ onNavigate }) => {
     <div className="fixed-card">
       <div className="fixed-header">
         <h3>Despesas Fixas</h3>
-        <div className="predicted-badge">
-          <small>Custo de Vida</small>
-          <strong>
-            {totalPredicted.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </strong>
+        <div className="fixed-header-badges">
+          <div className={`pending-badge ${totalPending === 0 ? 'all-paid' : ''}`}>
+            <small>Pendente</small>
+            <strong>
+              {totalPending.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </strong>
+          </div>
+          <div className="predicted-badge">
+            <small>Custo de Vida</small>
+            <strong>
+              {totalPredicted.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </strong>
+          </div>
         </div>
       </div>
 

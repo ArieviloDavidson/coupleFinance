@@ -25,6 +25,36 @@
   font-size: 1.1rem;
 }
 
+.fixed-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pending-badge {
+  text-align: right;
+  background-color: #fbeae8;
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: #e74c3c;
+}
+
+.pending-badge.all-paid {
+  background-color: #e8f5e9;
+  color: #27ae60;
+}
+
+.pending-badge small {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pending-badge strong {
+  font-size: 0.95rem;
+}
+
 .predicted-badge {
   text-align: right;
   background-color: #fff3e0;
@@ -36,8 +66,13 @@
 
 .predicted-badge small {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
+  font-weight: 600;
+}
+
+.predicted-badge strong {
+  font-size: 0.95rem;
 }
 
 .fixed-list {
