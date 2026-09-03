@@ -233,6 +233,13 @@ const Budgets = () => {
 
   const totalBudgetLimit = spendingData.reduce((acc, item) => acc + (item.limit || 0), 0);
 
+  // Limite superior dinâmico do gráfico em múltiplos de 500
+  const maxChartValue = Math.max(
+    0,
+    ...spendingData.map(item => Math.max(item.limit || 0, (item.spentWallet || 0) + (item.spentCard || 0)))
+  );
+  const yAxisMax = maxChartValue > 0 ? Math.ceil(maxChartValue / 500) * 500 : 500;
+
   return (
     <div className="budgets-container container">
       <div className="budgets-header header-container">
@@ -283,12 +290,12 @@ const Budgets = () => {
       <div className="budgets-content page-container">
         <div className="budgets-chart-section">
           <h3>Panorama Geral</h3>
-          <div style={{ width: '100%', height: 300 }}>
+          <div style={{ width: '100%', height: 420 }}>
             <ResponsiveContainer>
               <BarChart data={spendingData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
-                <YAxis />
+                <YAxis domain={[0, yAxisMax]} />
                 <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
                 <Legend />
                 <Bar dataKey="spentWallet" stackId="a" name="Gasto Carteira" fill="#8884d8" radius={[0, 0, 4, 4]} />
