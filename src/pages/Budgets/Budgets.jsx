@@ -248,41 +248,43 @@ const Budgets = () => {
           <p className="page-subtitle">Planeje seus limites mensais</p>
         </div>
 
-        <div className="header-cards">
-          <DashboardCard
-            label="Total das Metas"
-            value={totalBudgetLimit}
-            variant="prediction"
-            valueStyle={{ color: '#2e4761ff' }}
-          />
+        <div className="budgets-header-right">
+          <div className="header-cards">
+            <DashboardCard
+              label="Total das Metas"
+              value={totalBudgetLimit}
+              variant="prediction"
+              valueStyle={{ color: '#2e4761ff' }}
+            />
 
-          <DashboardCard
-            label="Total de Saídas"
-            value={totalMonthExpenses}
-            variant="forecast"
-            className="forecast-negative"
-          />
-        </div>
-
-        <div className="budgets-filters">
-          <div className="month-nav">
-            <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
-            <span className="month-label">{formatMonthLabel(currentMonth)}</span>
-            <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+            <DashboardCard
+              label="Total de Saídas"
+              value={totalMonthExpenses}
+              variant="forecast"
+              className="forecast-negative"
+            />
           </div>
-          <select
-            value={selectedSource}
-            onChange={e => setSelectedSource(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Todas as Fontes</option>
-            <optgroup label="Carteiras / Contas">
-              {sources.wallets.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-            </optgroup>
-            <optgroup label="Cartões de Crédito">
-              {sources.cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </optgroup>
-          </select>
+
+          <div className="budgets-filters">
+            <div className="month-nav">
+              <button onClick={() => changeMonth(-1)} className="month-nav-btn">◀</button>
+              <span className="month-label">{formatMonthLabel(currentMonth)}</span>
+              <button onClick={() => changeMonth(1)} className="month-nav-btn">▶</button>
+            </div>
+            <select
+              value={selectedSource}
+              onChange={e => setSelectedSource(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Todas as Fontes</option>
+              <optgroup label="Carteiras / Contas">
+                {sources.wallets.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </optgroup>
+              <optgroup label="Cartões de Crédito">
+                {sources.cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </optgroup>
+            </select>
+          </div>
         </div>
       </div>
 
